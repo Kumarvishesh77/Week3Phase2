@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Profile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<link rel="stylesheet" href="profile.css">
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <header>
+        <h2 class="logo">Skill<span>Bridge</span></h2>
+        <nav class="navigation">
+            <a href="index.html">Home</a>
+            <a href="profile.html">Profile</a>
+            <a href="#">Services</a>
+            <a href="#">Contact</a>
+            <button id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <!-- <button class="btnLogin-popup">Login</button> -->
+        </nav>
+    </header>
+<div class="profile-wrapper">
+    <!-- ===== Profile Header ===== -->
+    <div class="profile-header">
+        <div class="dp-box">
+            <img src="/profileplaceHolder.jfif" id="dp" alt="Profile Picture">
+            <input type="file" id="file" accept="image/*" onchange="previewDP(event)">
+            <label for="file">Change Photo</label>
+        </div>
+        <div class="username">
+            <input type="text" value="" id="userNameInput" disabled placeholder="Your Name">
+            <div class="user-email-display">
+                <i class="fas fa-envelope"></i> <span id="userEmail">email@example.com</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== View / Edit Toggle Buttons ===== -->
+    <div class="profile-edit-bar">
+        <button id="editBtn" class="edit-btn">Edit Profile</button>
+
+        <div class="edit-actions hidden">
+            <button id="saveBtn" class="save-btn">Save Changes</button>
+            <button id="cancelBtn" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ===== Selection Based Fields ===== -->
+    <div class="section">
+        <h3>Professional Details</h3>
+        <div class="profile-fields">
+            <div class="field">
+                <label><i class="fas fa-layer-group"></i> Domain</label>
+                <select disabled id="domainSelect">
+                    <option value="" disabled selected>Select Domain</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label><i class="fas fa-briefcase"></i> Current Job Role</label>
+                <input list="jobRoles" id="jobRoleInput" disabled placeholder="Search/Select Job Role...">
+                <datalist id="domains"></datalist>
+                <datalist id="jobRoles"></datalist>
+            </div>
+
+            <div class="field">
+                <label><i class="fas fa-bullseye"></i> Target Domain</label>
+                <input list="domains" id="targetDomainInput" disabled placeholder="Search/Select Domain...">
+            </div>
+
+            <div class="field">
+                <label><i class="fas fa-rocket"></i> Target Job Role</label>
+                <input list="jobRoles" id="targetRoleInput" disabled placeholder="Search/Select Job Role...">
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ===== Skills Table ===== -->
+    <div class="section">
+        <h3>Detailed Skills</h3>
+        
+        <!-- New Add Skill UI - Only functional in Edit Mode -->
+        <div class="skill-adder hidden" id="skillAdder">
+            <div class="field">
+                <input list="skillsList" id="newSkillName" placeholder="Search Skill (e.g. Python)">
+                <datalist id="skillsList"></datalist>
+            </div>
+            <div class="field">
+                <label for="newSkillLevel">Level</label>
+                <select id="newSkillLevel">
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advance">Advance</option>
+                </select>
+            </div>
+            <button class="add-btn" onclick="addNewSkillRow()">Add Skill</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Skill Name</th>
+                    <th>Confidence Level</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="skills">
+                <!-- Skills will be added here -->
+            </tbody>
+        </table>
+        <div class="add-skill" onclick="addSkill()">+ Add New Skill</div>
+    </div>
+
+    <div class="divider"></div> 
+
+    <!-- ===== Account Actions ===== -->
+    <div class="account-actions">
+        <button id="changePassBtn" class="outline-btn">Change Password</button>
+        <button class="danger-btn">Logout</button>
+        <button class="danger-btn">Delete Account</button>
+    </div>
+</div> <!-- End of profile-wrapper -->
+
+<div class="wrapper">
+    <span class="icon-close">&times;</span>
+
+    <div class="form-box login">
+        <h2>Change Password</h2>
+
+        <!-- Current Password -->
+        <div class="input-box">
+            <span class="icon">🔒</span>
+            <input type="password" required>
+            <label>Current Password</label>
+        </div>
+
+        <!-- New Password -->
+        <div class="input-box">
+            <span class="icon">🔑</span>
+            <input type="password" required>
+            <label>New Password</label>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="input-box">
+            <span class="icon">✅</span>
+            <input type="password" required>
+            <label>Confirm New Password</label>
+        </div>
+
+        <!-- Forget password -->
+        <div class="remember-forgot">
+            <a href="#">Forgot Password?</a>
+        </div>
+
+        <!-- Button -->
+        <button class="btn">Change Password</button>
+    </div>
+
+</div>
+
+
+
+<script src="profile.js"></script>
+</body>
+</html>
