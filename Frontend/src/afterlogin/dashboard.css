@@ -1,10 +1,13 @@
 /* ================= GLOBAL ================= */
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     font-family: "Segoe UI", sans-serif;
-    background: url("../../Background4.jpg.jfif") no-repeat center center/cover;
+    background: url("/Background4.jpg.jfif") no-repeat center center/cover;
     min-height: 100vh;
-    background-attachment: fixed;
 }
  
 /* ================= TOP BAR ================= */
@@ -18,13 +21,18 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 40px;
+    padding: 0 60px;
     z-index: 100;
 }
  
 .logo {
     font-size: 20px;
     font-weight: bold;
+    cursor: pointer;
+}
+
+.logo span {
+    color: #3b82f6;
 }
  
 .user-actions {
@@ -40,6 +48,65 @@ body {
     cursor: pointer;
     background: #2563eb;
     color: white;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.theme-btn:hover {
+    transform: scale(1.1);
+}
+
+/* ================= DARK MODE ================= */
+body.dark-mode {
+    color: #f1f5f9;
+}
+
+body.dark-mode::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7); /* Dark overlay */
+    z-index: -1;
+}
+
+body.dark-mode .topbar {
+    background: rgba(15, 23, 42, 0.85);
+    color: #f1f5f9;
+}
+
+body.dark-mode .sidebar,
+body.dark-mode .welcome-card,
+body.dark-mode .status-card,
+body.dark-mode .action-card {
+    background: rgba(30, 41, 59, 0.8);
+    color: #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .theme-btn {
+    color: #f1f5f9;
+}
+
+body.dark-mode .sidebar li.active {
+    color: #60a5fa;
+}
+
+body.dark-mode .logout-btn,
+body.dark-mode .action-card button {
+    background: #3b82f6;
 }
  
 /* ================= DASHBOARD ================= */

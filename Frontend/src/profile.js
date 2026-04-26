@@ -8,32 +8,97 @@ document.addEventListener('DOMContentLoaded', () => {
     const changePassBtn = document.getElementById('changePassBtn');
     const iconClose = document.querySelector('.icon-close');
     const confirmPassBtn = document.querySelector('.form-box.login .btn');
-    const logoutBtn = document.querySelector('.danger-btn'); // The first one is logout
+    const logoutBtn = document.querySelector('.danger-btn');
     
-    // Load User Data
+    // --- Load User Data ---
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
         document.getElementById('userNameInput').value = user.username || "";
         document.getElementById('userEmail').innerText = user.email || "email@example.com";
         
-        // Update Home link to Dashboard
         const homeLink = document.querySelector('.navigation a[href="index.html"]');
-        if (homeLink) homeLink.href = 'afterlogin/dashboard.html';
-    } else {
-        // Not logged in, redirect to login
-        // window.location.href = 'index.html';
+        if (homeLink) homeLink.href = 'index.html';
     }
 
-    // All editable inputs
+    // --- Load Professional Details ---
+    const loadProfessionalDetails = () => {
+        const details = JSON.parse(localStorage.getItem('professional_details') || '{}');
+        if (details) {
+            if (details.domain) document.getElementById('domainSelect').value = details.domain;
+            if (details.currentRole) document.getElementById('jobRoleInput').value = details.currentRole;
+            if (details.targetDomain) document.getElementById('targetDomainInput').value = details.targetDomain;
+            if (details.targetRole) document.getElementById('targetRoleInput').value = details.targetRole;
+        }
+    };
+
+    // --- Populate Domain Dropdown if empty ---
+    const domainSelect = document.getElementById('domainSelect');
+    if (domainSelect && domainSelect.options.length <= 1) {
+        const domains = ["Cloud & Enterprise IT", "Infrastructure", "Programming", "Web Development", "DevOps & SRE", "Security", "Databases", "Artificial Intelligence"];
+        domains.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.innerText = d;
+            domainSelect.appendChild(opt);
+        });
+    }
+
+    loadProfessionalDetails();
+
+    // --- Load Saved Skills ---
+    const loadSkills = () => {
+        const skillsList = document.getElementById('user-skills-list');
+        const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
+        
+        if (skillsList) {
+            skillsList.innerHTML = '';
+            if (savedSkills.length === 0) {
+                skillsList.innerHTML = '<li style="opacity: 0.5;">No skills added yet.</li>';
+            } else {
+                savedSkills.forEach((skill, index) => {
+                    const li = document.createElement('li');
+                    li.style.cssText = "background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);";
+                    li.innerHTML = `
+                        <span><strong>${skill.name}</strong> &ndash; ${skill.level}</span>
+                        <button onclick="deleteSkill(${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                    `;
+                    skillsList.appendChild(li);
+                });
+            }
+        }
+    };
+
+    loadSkills();
+
+    // --- Skill Form Submission ---
+    const skillForm = document.getElementById('skill-form');
+    if (skillForm) {
+        skillForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('skill-name').value.trim();
+            const level = document.getElementById('skill-level').value;
+
+            if (!name) return alert("Please enter a skill name.");
+            if (!level) return alert("Please select a proficiency level.");
+
+            const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
+            savedSkills.push({ name, level, addedAt: new Date().toISOString() });
+            localStorage.setItem('user_skills', JSON.stringify(savedSkills));
+
+            alert("Skill added successfully!");
+            skillForm.reset();
+            loadSkills();
+        });
+    }
+
+    // --- Profile UI Logic ---
     const inputs = document.querySelectorAll('.profile-wrapper input, .profile-wrapper select');
 
-    // 1. Edit Profile Logic
     if (editBtn) {
         editBtn.addEventListener('click', () => {
             inputs.forEach(input => input.disabled = false);
             editBtn.classList.add('hidden');
             editActions.classList.remove('hidden');
-            document.getElementById('skillAdder').classList.remove('hidden');
         });
     }
 
@@ -41,11 +106,22 @@ document.addEventListener('DOMContentLoaded', () => {
         inputs.forEach(input => input.disabled = true);
         if (editBtn) editBtn.classList.remove('hidden');
         if (editActions) editActions.classList.add('hidden');
-        document.getElementById('skillAdder').classList.add('hidden');
     };
 
     if (saveBtn) {
         saveBtn.addEventListener('click', () => {
+            // Save Professional Details
+            const details = {
+                domain: document.getElementById('domainSelect').value,
+                currentRole: document.getElementById('jobRoleInput').value,
+                targetDomain: document.getElementById('targetDomainInput').value,
+                targetRole: document.getElementById('targetRoleInput').value
+            };
+            
+            localStorage.setItem('professional_details', JSON.stringify(details));
+            // Also sync target role for dashboard
+            localStorage.setItem('target_role', details.targetRole);
+            
             alert("Changes Saved Successfully!");
             exitEditMode();
         });
@@ -53,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
 
-    // 2. Change Password Popup Logic
+    // --- Password & Logout & Theme (Existing) ---
     if (changePassBtn) {
         changePassBtn.addEventListener('click', () => {
             profileWrapper.classList.add('hide');
@@ -76,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Logout Logic
     if (logoutBtn && logoutBtn.innerText === 'Logout') {
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('user');
@@ -85,20 +160,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Dark Mode Toggle Logic
     const toggleBtn = document.getElementById('darkModeToggle');
     const body = document.body;
-
     const updateThemeUI = (isDark) => {
         body.classList.toggle('dark-mode', isDark);
-        if (toggleBtn) {
-            toggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        }
+        if (toggleBtn) toggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     };
-
     const savedTheme = localStorage.getItem('theme');
     updateThemeUI(savedTheme === 'dark');
-
     if (toggleBtn) toggleBtn.addEventListener('click', () => {
         const isDark = body.classList.contains('dark-mode');
         const newTheme = !isDark;
@@ -107,15 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Skill management functions (Global for HTML onclick)
-function addSkill() {
-    const adder = document.getElementById('skillAdder');
-    const editBtn = document.getElementById('editBtn');
-    if (editBtn && editBtn.classList.contains('hidden')) {
-        adder.classList.toggle('hidden');
-    } else {
-        alert("Please click 'Edit Profile' first.");
-    }
+// Global functions
+function deleteSkill(index) {
+    const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
+    savedSkills.splice(index, 1);
+    localStorage.setItem('user_skills', JSON.stringify(savedSkills));
+    window.location.reload();
 }
 
 function previewDP(e) {
@@ -123,19 +189,4 @@ function previewDP(e) {
     const dp = document.getElementById('dp');
     reader.onload = () => { if (dp) dp.src = reader.result; }
     if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
-}
-
-function addNewSkillRow() {
-    const name = document.getElementById('newSkillName').value;
-    const level = document.getElementById('newSkillLevel').value;
-    if (!name) return alert("Please select or type a skill name.");
-
-    const tbody = document.getElementById("skills");
-    const row = `<tr>
-        <td><strong>${name}</strong></td>
-        <td><span class="badge">${level}</span></td>
-        <td><button class="delete-skill-btn" onclick="this.closest('tr').remove()" style="background:transparent; border:none; cursor:pointer; font-size: 1.1em;">🗑️</button></td>
-    </tr>`;
-    tbody.insertAdjacentHTML("beforeend", row);
-    document.getElementById('newSkillName').value = "";
 }

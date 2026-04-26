@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const AuthRoutes = require("./routes/auth.routes");
+const AiRoutes = require("./routes/ai.routes");
 
 const app = express();
 
@@ -33,11 +34,10 @@ app.use(express.static(rootPath));
 
 // API Routes
 app.use("/api/auth", AuthRoutes);
+app.use("/api/ai", AiRoutes);
 
 // Fallback for SPA routing and 404s
-// app.use() without a path is guaranteed to catch all requests that fall through
 app.use((req, res) => {
-    // If request is for an API that doesn't exist, return JSON 404
     if (req.originalUrl.startsWith('/api')) {
         return res.status(404).json({ message: "API route not found" });
     }
@@ -45,13 +45,12 @@ app.use((req, res) => {
     const indexPath = path.join(frontendSrcPath, "index.html");
     res.sendFile(indexPath, (err) => {
         if (err) {
-            // If the file is missing, provide the path to help with debugging
             res.status(404).send(`Frontend not found. Ensure 'index.html' exists in: ${frontendSrcPath}`);
         }
     });
 });
 
-// Global Error Handler - catches hidden crashes and displays them
+// Global Error Handler
 app.use((err, req, res, next) => {
     console.error("SERVER ERROR:", err);
     res.status(500).send(`Internal Server Error: ${err.message}`);

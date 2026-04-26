@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    fullname: {
+        type: String,
+        required: true,
+    },
     email: {
         type: String,
         required: true,
@@ -15,11 +19,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    age: {
+        type: Number,
+    },
+    gender: {
+        type: String,
+    },
     role: {
         type: String,
         enum: ['user', 'artist'],
         default: 'user',
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

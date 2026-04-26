@@ -1,14 +1,31 @@
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const { sendResetEmail } = require("../services/email.service");
+
+const isStrongPassword = (password) => {
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return strongPasswordRegex.test(password);
+};
 
 async function registerUser(req, res) {
     try {
-        const { username, email, password, role = "user" } = req.body;
+        console.log("Registration Request Body:", req.body);
+        const { fullname, email, password, age, gender, role = "user" } = req.body;
 
-        if (!username || !email || !password) {
+        if (!fullname || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
+
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({ 
+                message: "Password does not meet complexity requirements: min. 8 chars, including A-Z, a-z, 0-9, and @$!%." 
+            });
+        }
+
+        // Use fullname as username for now, ensuring it's unique in a real app
+        const username = fullname;
 
         const userAlreadyExist = await userModel.findOne({
             $or: [{ username }, { email }]
@@ -23,8 +40,11 @@ async function registerUser(req, res) {
 
         const user = new userModel({
             username,
+            fullname,
             email,
             password: hashedPassword,
+            age,
+            gender,
             role
         });
 
@@ -54,6 +74,7 @@ async function registerUser(req, res) {
 
 async function loginUser(req, res) {
     try {
+        console.log("Login Request Body:", req.body);
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -92,4 +113,80 @@ async function loginUser(req, res) {
     }
 }
 
-module.exports = { registerUser, loginUser };
+async function forgotPassword(req, res) {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const user = await userModel.findOne({ email });
+
+        // Security best practice: don't reveal if user exists
+        if (!user) {
+            return res.status(200).json({ message: "If an account exists with this email, a password reset link has been sent." });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+        // Save token to database with 1 hour expiry
+        user.resetPasswordToken = resetTokenHash;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password.html?token=${resetToken}`;
+
+        const emailSent = await sendResetEmail(user.email, resetLink);
+
+        if (!emailSent) {
+            return res.status(500).json({ message: "Error sending email. Please try again later." });
+        }
+
+        return res.status(200).json({ message: "If an account exists with this email, a password reset link has been sent." });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+async function resetPassword(req, res) {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ message: "Token and password are required" });
+        }
+
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({ 
+                message: "Password does not meet complexity requirements: min. 8 chars, including A-Z, a-z, 0-9, and @$!%." 
+            });
+        }
+
+        const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+        const user = await userModel.findOne({
+            resetPasswordToken: resetTokenHash,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Token is invalid or has expired" });
+        }
+
+        // Set new password
+        user.password = await bcrypt.hash(password, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        return res.status(200).json({ message: "Password has been successfully reset. You can now login." });
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+module.exports = { registerUser, loginUser, forgotPassword, resetPassword };

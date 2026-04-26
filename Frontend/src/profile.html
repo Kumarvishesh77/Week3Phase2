@@ -83,40 +83,37 @@
 
     <div class="divider"></div>
 
-    <!-- ===== Skills Table ===== -->
-    <div class="section">
-        <h3>Detailed Skills</h3>
+    <!-- ===== Skills Section ===== -->
+    <div class="section" id="skill-management-section">
+        <h3>Manage Your Skills</h3>
+        <p style="opacity: 0.7; margin-bottom: 20px;">Add your current skills and proficiency levels to improve your analysis.</p>
         
-        <!-- New Add Skill UI - Only functional in Edit Mode -->
-        <div class="skill-adder hidden" id="skillAdder">
-            <div class="field">
-                <input list="skillsList" id="newSkillName" placeholder="Search Skill (e.g. Python)">
-                <datalist id="skillsList"></datalist>
+        <form id="skill-form" style="display: flex; flex-direction: column; gap: 15px; text-align: left; max-width: 400px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+                <label for="skill-name" style="font-weight: 500;">Skill Name</label>
+                <input type="text" id="skill-name" placeholder="Enter a skill (e.g., Java, M365, Networking)" 
+                       style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white;">
             </div>
-            <div class="field">
-                <label for="newSkillLevel">Level</label>
-                <select id="newSkillLevel">
+            
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+                <label for="skill-level" style="font-weight: 500;">Proficiency Level</label>
+                <select id="skill-level" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white;">
+                    <option value="" disabled selected>Select Level</option>
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
-                    <option value="Advance">Advance</option>
+                    <option value="Advanced">Advanced</option>
                 </select>
             </div>
-            <button class="add-btn" onclick="addNewSkillRow()">Add Skill</button>
-        </div>
+            
+            <button type="submit" id="add-skill-btn" class="save-btn" style="width: 100%; margin-top: 10px;">Add Skill</button>
+        </form>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Skill Name</th>
-                    <th>Confidence Level</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="skills">
-                <!-- Skills will be added here -->
-            </tbody>
-        </table>
-        <div class="add-skill" onclick="addSkill()">+ Add New Skill</div>
+        <div id="skills-list-container" style="margin-top: 40px; text-align: left; max-width: 400px;">
+            <h3>Your Saved Skills</h3>
+            <ul id="user-skills-list" style="list-style: none; padding: 0; margin-top: 15px;">
+                <!-- Skills will be dynamically loaded here -->
+            </ul>
+        </div>
     </div>
 
     <div class="divider"></div> 

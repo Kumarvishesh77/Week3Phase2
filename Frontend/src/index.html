@@ -14,7 +14,7 @@
     <header>
         <h2 class="logo">Skill<span>Bridge</span></h2>
         <nav class="navigation">
-            <a href="#">Home</a>
+            <a href="index.html">Home</a>
             <a href="profile.html">Profile</a>
             <a href="#">Services</a>
             <a href="#">Contact</a>
@@ -22,6 +22,7 @@
                 <i class="fas fa-moon"></i>
             </button>
             <button class="btnLogin-popup">Login</button>
+            <button class="btnRegister-popup">Register</button>
         </nav>
     </header>
 
@@ -55,17 +56,17 @@
             <h2>Login</h2>
             <form action="#">
                 <div class="input-box">
-                    <span class="icon"><ion-icon name="mail"></ion-icon></span>
-                    <input type="email" required>
-                    <label>Email</label>
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" placeholder=" " required>
+                    <label>Email <span class="required">*</span></label>
                 </div>
                 <div class="input-box">
-                    <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
-                    <input type="password" required>
-                    <label>Password</label>
+                    <span class="icon toggle-password"><ion-icon name="eye-off-outline"></ion-icon></span>
+                    <input type="password" class="password-input" placeholder=" " required>
+                    <label>Password <span class="required">*</span></label>
                 </div>
                 <div class="remember-forgot">
-                    <label><input type="checkbox">Remeber me</label>
+                    <label><input type="checkbox">Remember me</label>
                     <a href="#">Forgot Password?</a>
                 </div>
                 <button type="submit" class="btn">Login</button>
@@ -75,26 +76,64 @@
             </form>
         </div>
 
+        <div class="form-box forgot-password">
+            <h2>Reset Password</h2>
+            <p class="description">Enter your registered email address and we'll send you a link to reset your password.</p>
+            <form action="#">
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="forgot-email" placeholder=" " required>
+                    <label>Email Address <span class="required">*</span></label>
+                </div>
+                <button type="submit" class="btn">Send Reset Link</button>
+                <div class="login-register">
+                    <p><a href="#" class="back-to-login">Back to Login</a></p>
+                </div>
+            </form>
+            <div id="forgot-error" class="error-message" style="display: none; color: #ef4444; font-size: 0.85em; text-align: center; margin-top: 10px;"></div>
+            <div id="forgot-message" class="success-message" style="display: none;"></div>
+        </div>
+
         <div class="form-box register">
             <h2>Registration</h2>
             <form action="#">
-                 <div class="input-box">
-                    <span class="icon"><ion-icon name="person"></ion-icon></span>
-                    <input type="text" required>
-                    <label>Username</label>
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="person-outline"></ion-icon></span>
+                    <input type="text" id="reg-fullname" placeholder=" " required>
+                    <label>Full Name <span class="required">*</span></label>
                 </div>
                 <div class="input-box">
-                    <span class="icon"><ion-icon name="mail"></ion-icon></span>
-                    <input type="email" required>
-                    <label>Email</label>
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="reg-email" placeholder=" " required>
+                    <label>Email Address <span class="required">*</span></label>
                 </div>
                 <div class="input-box">
-                    <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
-                    <input type="password" required>
-                    <label>Password</label>
+                    <input type="number" id="reg-age" placeholder=" " required>
+                    <label>Age <span class="required">*</span></label>
+                </div>
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="people-outline"></ion-icon></span>
+                    <select id="reg-gender" required>
+                        <option value="" disabled selected hidden></option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <label>Gender <span class="required">*</span></label>
+                </div>
+                <div class="input-box">
+                    <span class="icon toggle-password"><ion-icon name="eye-off-outline"></ion-icon></span>
+                    <input type="password" id="reg-password" class="password-input" placeholder=" " required>
+                    <label>Password <span class="required">*</span></label>
+                    <div class="input-helper">Only strong passwords accepted (min. 8 chars, A–Z, a–z, 0–9, @$!%)</div>
+                </div>
+                <div class="input-box">
+                    <span class="icon toggle-password"><ion-icon name="eye-off-outline"></ion-icon></span>
+                    <input type="password" id="reg-confirm-password" class="password-input" placeholder=" " required>
+                    <label>Confirm Password <span class="required">*</span></label>
                 </div>
                 <div class="remember-forgot">
-                    <label><input type="checkbox">agree to terms & conditions</label>
+                    <label><input type="checkbox" required>I agree to the Terms & Conditions and Privacy Policy</label>
                 </div>
                 <button type="submit" class="btn">Register</button>
                 <div class="login-register">
