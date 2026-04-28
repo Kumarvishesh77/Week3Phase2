@@ -177,7 +177,7 @@ function showResults(score) {
         addButton(resultActions, "Back to Dashboard", () => location.href = 'afterlogin/dashboard.html');
     } else {
         resultMsg.innerText = `Assessment Failed (${score}%). 70% required to pass.`;
-        addButton(resultActions, "Retake Assessment", () => initAssessment());
+        addButton(resultActions, "Back to Dashboard", () => location.href = 'afterlogin/dashboard.html');
     }
 }
 

@@ -1,4 +1,5 @@
 const userModel = require("../models/user.model");
+const profileModel = require("../models/profile.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -49,6 +50,12 @@ async function registerUser(req, res) {
         });
 
         await user.save();
+
+        // Auto-create Profile for the user
+        await profileModel.create({
+            userId: user._id,
+            gender: user.gender || "Prefer not to say"
+        });
 
         const token = jwt.sign(
             { id: user._id, role: user.role },

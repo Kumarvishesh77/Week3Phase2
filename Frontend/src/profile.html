@@ -1,171 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Profile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-<link rel="stylesheet" href="profile.css">
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <title>User Profile | SkillBridge Enterprise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-
-<body>
-    <header>
+<body class="enterprise-theme">
+    <header class="main-header">
         <h2 class="logo">Skill<span>Bridge</span></h2>
         <nav class="navigation">
-            <a href="index.html">Home</a>
-            <a href="profile.html">Profile</a>
-            <a href="#">Services</a>
-            <a href="#">Contact</a>
-            <button id="darkModeToggle">
+            <a href="index.html">Dashboard</a>
+            <a href="profile.html" class="active">Profile</a>
+            <a href="#">Learning</a>
+            <a href="#">Analytics</a>
+            <button id="darkModeToggle" class="icon-btn">
                 <i class="fas fa-moon"></i>
             </button>
-            <!-- <button class="btnLogin-popup">Login</button> -->
+            <div class="user-pill">
+                <span id="headerUserName">Loading...</span>
+                <img src="/profileplaceHolder.jfif" class="mini-avatar" id="headerAvatar">
+            </div>
         </nav>
     </header>
-<div class="profile-wrapper">
-    <!-- ===== Profile Header ===== -->
-    <div class="profile-header">
-        <div class="dp-box">
-            <img src="/profileplaceHolder.jfif" id="dp" alt="Profile Picture">
-            <input type="file" id="file" accept="image/*" onchange="previewDP(event)">
-            <label for="file">Change Photo</label>
-        </div>
-        <div class="username">
-            <input type="text" value="" id="userNameInput" disabled placeholder="Your Name">
-            <div class="user-email-display">
-                <i class="fas fa-envelope"></i> <span id="userEmail">email@example.com</span>
+
+    <main class="profile-container">
+        <!-- Sidebar: Identity Hub -->
+        <aside class="profile-sidebar">
+            <div class="sidebar-card identity-card">
+                <div class="avatar-container">
+                    <img src="/profileplaceHolder.jfif" id="profileAvatar" alt="User Avatar">
+                    <label for="avatarUpload" class="avatar-edit-overlay">
+                        <i class="fas fa-camera"></i>
+                        <span>Update</span>
+                    </label>
+                    <input type="file" id="avatarUpload" hidden accept="image/*">
+                </div>
+                <h1 id="sidebarFullName">--</h1>
+                <p id="sidebarRole" class="text-secondary">--</p>
+                <div class="badge verified" id="profileStatusBadge">Verified</div>
             </div>
+
+            <div class="sidebar-card completion-card">
+                <h3>Profile Completion</h3>
+                <div class="progress-radial">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" id="completionCircle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage" id="completionText">0%</text>
+                    </svg>
+                </div>
+                <ul class="next-steps" id="nextStepsList">
+                    <!-- Dynamic -->
+                </ul>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn btn-outline" id="downloadIdBtn"><i class="fas fa-id-card"></i> Digital ID</button>
+                <button class="btn btn-danger-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content: Work Area -->
+        <section class="profile-main-content">
+            <nav class="content-tabs">
+                <button class="tab-btn active" data-tab="overview">Overview</button>
+                <button class="tab-btn" data-tab="professional">Professional Info</button>
+                <button class="tab-btn" data-tab="education">Education</button>
+                <button class="tab-btn" data-tab="documents">Compliance & Docs</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </nav>
+
+            <div class="tab-panels">
+                <!-- Overview Panel -->
+                <div class="tab-panel active" id="overview">
+                    <div class="panel-header">
+                        <h2>Basic Information</h2>
+                        <button class="btn btn-primary edit-toggle-btn">Edit Details</button>
+                    </div>
+                    <form class="grid-form profile-form" id="basicInfoForm">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="fullname" placeholder="Full Name" required disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Primary Email</label>
+                            <input type="email" name="email" placeholder="Email" readonly class="readonly-field">
+                            <small>Managed by organization</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Secondary Email</label>
+                            <input type="email" name="secondaryEmail" placeholder="Personal Email" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number</label>
+                            <div class="input-with-action">
+                                <input type="tel" name="mobileNumber" placeholder="+1 (555) 000-0000" disabled>
+                                <button type="button" class="action-link" id="verifyPhoneBtn">Verify</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" name="dob" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select name="gender" disabled>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nationality</label>
+                            <input type="text" name="nationality" placeholder="e.g. American" disabled>
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Residential Address</label>
+                            <textarea name="residentialAddress" rows="2" placeholder="Street, City, State, ZIP" disabled></textarea>
+                        </div>
+                    </form>
+
+                    <div class="panel-header mt-4">
+                        <h2>System Information</h2>
+                    </div>
+                    <div class="system-grid">
+                        <div class="system-item">
+                            <span class="label">User ID / Employee ID</span>
+                            <span class="value" id="sysUserId">--</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="label">Account Created</span>
+                            <span class="value" id="sysCreatedDate">--</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="label">Last Updated</span>
+                            <span class="value" id="sysUpdatedDate">--</span>
+                        </div>
+                        <div class="system-item">
+                            <span class="label">User Role</span>
+                            <span class="value" id="sysUserRole">Standard User</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Panel -->
+                <div class="tab-panel" id="professional">
+                    <div class="panel-header">
+                        <h2>Employment Details</h2>
+                        <button class="btn btn-primary edit-toggle-btn">Edit Details</button>
+                    </div>
+                    <form class="grid-form profile-form" id="professionalForm">
+                        <div class="form-group">
+                            <label>Job Title</label>
+                            <input type="text" name="jobTitle" placeholder="Senior Product Designer" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Department</label>
+                            <input type="text" name="department" placeholder="Product & Design" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Reporting Manager</label>
+                            <input type="text" name="reportingManager" placeholder="Manager Name" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Employment Type</label>
+                            <select name="employmentType" disabled>
+                                <option value="Permanent">Permanent</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Intern">Intern</option>
+                                <option value="Part-time">Part-time</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Joining Date</label>
+                            <input type="date" name="joiningDate" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Work Location</label>
+                            <input type="text" name="workLocation" placeholder="Seattle, WA" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Experience (Years)</label>
+                            <input type="number" name="totalExperience" min="0" disabled>
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Skills / Expertise</label>
+                            <div class="tag-input-container">
+                                <div class="tags" id="skillsTags"></div>
+                                <input type="text" id="skillInput" placeholder="Add skill and press Enter..." disabled>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Education Panel -->
+                <div class="tab-panel" id="education">
+                    <div class="panel-header">
+                        <h2>Academic History</h2>
+                        <button class="btn btn-primary" id="addEducationBtn">Add New</button>
+                    </div>
+                    <div id="educationList" class="card-list">
+                        <!-- Dynamic education entries -->
+                    </div>
+                </div>
+
+                <!-- Documents Panel -->
+                <div class="tab-panel" id="documents">
+                    <div class="panel-header">
+                        <h2>Identification & Compliance</h2>
+                    </div>
+                    <div class="compliance-info card-style">
+                        <div class="info-row">
+                            <i class="fas fa-shield-alt icon-circle"></i>
+                            <div>
+                                <h3>Background Verification</h3>
+                                <p id="complianceBgStatus">Not Started</p>
+                            </div>
+                        </div>
+                        <div class="grid-form mt-3">
+                            <div class="form-group">
+                                <label>Government ID Type</label>
+                                <input type="text" id="govtIdType" readonly class="readonly-field" value="Passport">
+                            </div>
+                            <div class="form-group">
+                                <label>ID Number</label>
+                                <input type="text" id="govtIdNumber" readonly class="readonly-field" value="XXXX-XXXX-1234">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-header mt-4">
+                        <h2>Uploaded Documents</h2>
+                    </div>
+                    <div class="file-list">
+                        <div class="file-item">
+                            <i class="far fa-file-pdf"></i>
+                            <div class="file-info">
+                                <span class="file-name">Resume_Final_2026.pdf</span>
+                                <span class="file-meta">Uploaded on April 12, 2026</span>
+                            </div>
+                            <button class="action-btn"><i class="fas fa-download"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="tab-panel" id="settings">
+                    <div class="panel-header">
+                        <h2>Account Preferences</h2>
+                    </div>
+                    <form class="grid-form profile-form" id="settingsForm">
+                        <div class="form-group">
+                            <label>System Language</label>
+                            <select name="language" disabled>
+                                <option value="English">English</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="French">French</option>
+                                <option value="German">German</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Time Zone</label>
+                            <select name="timeZone" disabled>
+                                <option value="UTC">UTC (Universal Time)</option>
+                                <option value="PST">PST (Pacific Time)</option>
+                                <option value="EST">EST (Eastern Time)</option>
+                                <option value="IST">IST (India Standard Time)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Default Theme</label>
+                            <div class="theme-switcher">
+                                <button type="button" class="theme-opt active" data-theme="Light">Light</button>
+                                <button type="button" class="theme-opt" data-theme="Dark">Dark</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="panel-header mt-4">
+                        <h2>Security</h2>
+                    </div>
+                    <div class="security-actions">
+                        <button class="btn btn-outline" id="changePassBtn">Change Password</button>
+                        <button class="btn btn-outline">Enable Two-Factor Authentication</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Form Actions (Sticky) -->
+            <div class="form-footer-actions hidden" id="globalFormActions">
+                <button class="btn btn-secondary" id="cancelChangesBtn">Discard Changes</button>
+                <button class="btn btn-success" id="saveChangesBtn">Save Profile</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Update Security Password</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-3">Update Password</button>
+            </form>
         </div>
     </div>
 
-    <!-- ===== View / Edit Toggle Buttons ===== -->
-    <div class="profile-edit-bar">
-        <button id="editBtn" class="edit-btn">Edit Profile</button>
+    <div id="toastContainer" class="toast-container"></div>
 
-        <div class="edit-actions hidden">
-            <button id="saveBtn" class="save-btn">Save Changes</button>
-            <button id="cancelBtn" class="cancel-btn">Cancel</button>
-        </div>
-    </div>
-
-    <!-- ===== Selection Based Fields ===== -->
-    <div class="section">
-        <h3>Professional Details</h3>
-        <div class="profile-fields">
-            <div class="field">
-                <label><i class="fas fa-layer-group"></i> Domain</label>
-                <select disabled id="domainSelect">
-                    <option value="" disabled selected>Select Domain</option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label><i class="fas fa-briefcase"></i> Current Job Role</label>
-                <input list="jobRoles" id="jobRoleInput" disabled placeholder="Search/Select Job Role...">
-                <datalist id="domains"></datalist>
-                <datalist id="jobRoles"></datalist>
-            </div>
-
-            <div class="field">
-                <label><i class="fas fa-bullseye"></i> Target Domain</label>
-                <input list="domains" id="targetDomainInput" disabled placeholder="Search/Select Domain...">
-            </div>
-
-            <div class="field">
-                <label><i class="fas fa-rocket"></i> Target Job Role</label>
-                <input list="jobRoles" id="targetRoleInput" disabled placeholder="Search/Select Job Role...">
-            </div>
-        </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- ===== Skills Section ===== -->
-    <div class="section" id="skill-management-section">
-        <h3>Manage Your Skills</h3>
-        <p style="opacity: 0.7; margin-bottom: 20px;">Add your current skills and proficiency levels to improve your analysis.</p>
-        
-        <form id="skill-form" style="display: flex; flex-direction: column; gap: 15px; text-align: left; max-width: 400px;">
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-                <label for="skill-name" style="font-weight: 500;">Skill Name</label>
-                <input type="text" id="skill-name" placeholder="Enter a skill (e.g., Java, M365, Networking)" 
-                       style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white;">
-            </div>
-            
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-                <label for="skill-level" style="font-weight: 500;">Proficiency Level</label>
-                <select id="skill-level" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white;">
-                    <option value="" disabled selected>Select Level</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                </select>
-            </div>
-            
-            <button type="submit" id="add-skill-btn" class="save-btn" style="width: 100%; margin-top: 10px;">Add Skill</button>
-        </form>
-
-        <div id="skills-list-container" style="margin-top: 40px; text-align: left; max-width: 400px;">
-            <h3>Your Saved Skills</h3>
-            <ul id="user-skills-list" style="list-style: none; padding: 0; margin-top: 15px;">
-                <!-- Skills will be dynamically loaded here -->
-            </ul>
-        </div>
-    </div>
-
-    <div class="divider"></div> 
-
-    <!-- ===== Account Actions ===== -->
-    <div class="account-actions">
-        <button id="changePassBtn" class="outline-btn">Change Password</button>
-        <button class="danger-btn">Logout</button>
-        <button class="danger-btn">Delete Account</button>
-    </div>
-</div> <!-- End of profile-wrapper -->
-
-<div class="wrapper">
-    <span class="icon-close">&times;</span>
-
-    <div class="form-box login">
-        <h2>Change Password</h2>
-
-        <!-- Current Password -->
-        <div class="input-box">
-            <span class="icon">🔒</span>
-            <input type="password" required>
-            <label>Current Password</label>
-        </div>
-
-        <!-- New Password -->
-        <div class="input-box">
-            <span class="icon">🔑</span>
-            <input type="password" required>
-            <label>New Password</label>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="input-box">
-            <span class="icon">✅</span>
-            <input type="password" required>
-            <label>Confirm New Password</label>
-        </div>
-
-        <!-- Forget password -->
-        <div class="remember-forgot">
-            <a href="#">Forgot Password?</a>
-        </div>
-
-        <!-- Button -->
-        <button class="btn">Change Password</button>
-    </div>
-
-</div>
-
-
-
-<script src="profile.js"></script>
+    <script src="profile.js"></script>
 </body>
 </html>

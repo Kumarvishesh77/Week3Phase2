@@ -3,6 +3,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const AuthRoutes = require("./routes/auth.routes");
 const AiRoutes = require("./routes/ai.routes");
+const ProfileRoutes = require("./routes/profile.routes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(express.static(rootPath));
 // API Routes
 app.use("/api/auth", AuthRoutes);
 app.use("/api/ai", AiRoutes);
+app.use("/api/profile", ProfileRoutes);
 
 // Fallback for SPA routing and 404s
 app.use((req, res) => {

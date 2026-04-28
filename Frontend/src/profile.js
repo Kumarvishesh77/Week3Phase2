@@ -1,192 +1,260 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const profileWrapper = document.querySelector('.profile-wrapper');
-    const passwordWrapper = document.querySelector('.wrapper');
-    const editBtn = document.getElementById('editBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const editActions = document.querySelector('.edit-actions');
-    const changePassBtn = document.getElementById('changePassBtn');
-    const iconClose = document.querySelector('.icon-close');
-    const confirmPassBtn = document.querySelector('.form-box.login .btn');
-    const logoutBtn = document.querySelector('.danger-btn');
-    
-    // --- Load User Data ---
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-        document.getElementById('userNameInput').value = user.username || "";
-        document.getElementById('userEmail').innerText = user.email || "email@example.com";
-        
-        const homeLink = document.querySelector('.navigation a[href="index.html"]');
-        if (homeLink) homeLink.href = 'index.html';
-    }
+    // State management
+    let currentProfile = null;
+    let isEditMode = false;
 
-    // --- Load Professional Details ---
-    const loadProfessionalDetails = () => {
-        const details = JSON.parse(localStorage.getItem('professional_details') || '{}');
-        if (details) {
-            if (details.domain) document.getElementById('domainSelect').value = details.domain;
-            if (details.currentRole) document.getElementById('jobRoleInput').value = details.currentRole;
-            if (details.targetDomain) document.getElementById('targetDomainInput').value = details.targetDomain;
-            if (details.targetRole) document.getElementById('targetRoleInput').value = details.targetRole;
-        }
-    };
+    // UI Elements
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    const editToggleBtns = document.querySelectorAll('.edit-toggle-btn');
+    const globalFormActions = document.getElementById('globalFormActions');
+    const saveChangesBtn = document.getElementById('saveChangesBtn');
+    const cancelChangesBtn = document.getElementById('cancelChangesBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
 
-    // --- Populate Domain Dropdown if empty ---
-    const domainSelect = document.getElementById('domainSelect');
-    if (domainSelect && domainSelect.options.length <= 1) {
-        const domains = ["Cloud & Enterprise IT", "Infrastructure", "Programming", "Web Development", "DevOps & SRE", "Security", "Databases", "Artificial Intelligence"];
-        domains.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.innerText = d;
-            domainSelect.appendChild(opt);
-        });
-    }
-
-    loadProfessionalDetails();
-
-    // --- Load Saved Skills ---
-    const loadSkills = () => {
-        const skillsList = document.getElementById('user-skills-list');
-        const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
-        
-        if (skillsList) {
-            skillsList.innerHTML = '';
-            if (savedSkills.length === 0) {
-                skillsList.innerHTML = '<li style="opacity: 0.5;">No skills added yet.</li>';
-            } else {
-                savedSkills.forEach((skill, index) => {
-                    const li = document.createElement('li');
-                    li.style.cssText = "background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);";
-                    li.innerHTML = `
-                        <span><strong>${skill.name}</strong> &ndash; ${skill.level}</span>
-                        <button onclick="deleteSkill(${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash"></i></button>
-                    `;
-                    skillsList.appendChild(li);
-                });
-            }
-        }
-    };
-
-    loadSkills();
-
-    // --- Skill Form Submission ---
-    const skillForm = document.getElementById('skill-form');
-    if (skillForm) {
-        skillForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('skill-name').value.trim();
-            const level = document.getElementById('skill-level').value;
-
-            if (!name) return alert("Please enter a skill name.");
-            if (!level) return alert("Please select a proficiency level.");
-
-            const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
-            savedSkills.push({ name, level, addedAt: new Date().toISOString() });
-            localStorage.setItem('user_skills', JSON.stringify(savedSkills));
-
-            alert("Skill added successfully!");
-            skillForm.reset();
-            loadSkills();
-        });
-    }
-
-    // --- Profile UI Logic ---
-    const inputs = document.querySelectorAll('.profile-wrapper input, .profile-wrapper select');
-
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            inputs.forEach(input => input.disabled = false);
-            editBtn.classList.add('hidden');
-            editActions.classList.remove('hidden');
-        });
-    }
-
-    const exitEditMode = () => {
-        inputs.forEach(input => input.disabled = true);
-        if (editBtn) editBtn.classList.remove('hidden');
-        if (editActions) editActions.classList.add('hidden');
-    };
-
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            // Save Professional Details
-            const details = {
-                domain: document.getElementById('domainSelect').value,
-                currentRole: document.getElementById('jobRoleInput').value,
-                targetDomain: document.getElementById('targetDomainInput').value,
-                targetRole: document.getElementById('targetRoleInput').value
-            };
+    // --- Tab Switching ---
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
             
-            localStorage.setItem('professional_details', JSON.stringify(details));
-            // Also sync target role for dashboard
-            localStorage.setItem('target_role', details.targetRole);
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(p => p.classList.remove('active'));
             
-            alert("Changes Saved Successfully!");
-            exitEditMode();
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         });
-    }
-
-    if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
-
-    // --- Password & Logout & Theme (Existing) ---
-    if (changePassBtn) {
-        changePassBtn.addEventListener('click', () => {
-            profileWrapper.classList.add('hide');
-            passwordWrapper.classList.add('active-popup');
-        });
-    }
-
-    const closePasswordPopup = () => {
-        passwordWrapper.classList.remove('active-popup');
-        profileWrapper.classList.remove('hide');
-    };
-
-    if (iconClose) iconClose.addEventListener('click', closePasswordPopup);
-
-    if (confirmPassBtn) {
-        confirmPassBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            alert("Password changed successfully!");
-            closePasswordPopup();
-        });
-    }
-
-    if (logoutBtn && logoutBtn.innerText === 'Logout') {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('user');
-            alert('Logged out successfully');
-            window.location.href = 'index.html';
-        });
-    }
-
-    const toggleBtn = document.getElementById('darkModeToggle');
-    const body = document.body;
-    const updateThemeUI = (isDark) => {
-        body.classList.toggle('dark-mode', isDark);
-        if (toggleBtn) toggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    };
-    const savedTheme = localStorage.getItem('theme');
-    updateThemeUI(savedTheme === 'dark');
-    if (toggleBtn) toggleBtn.addEventListener('click', () => {
-        const isDark = body.classList.contains('dark-mode');
-        const newTheme = !isDark;
-        localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-        updateThemeUI(newTheme);
     });
-});
 
-// Global functions
-function deleteSkill(index) {
-    const savedSkills = JSON.parse(localStorage.getItem('user_skills') || '[]');
-    savedSkills.splice(index, 1);
-    localStorage.setItem('user_skills', JSON.stringify(savedSkills));
-    window.location.reload();
-}
+    // --- Edit Mode Toggle ---
+    const setEditMode = (enabled) => {
+        isEditMode = enabled;
+        const inputs = document.querySelectorAll('.profile-form input:not(.readonly-field), .profile-form select:not(.readonly-field), .profile-form textarea:not(.readonly-field)');
+        
+        inputs.forEach(input => {
+            input.disabled = !enabled;
+        });
 
-function previewDP(e) {
-    const reader = new FileReader();
-    const dp = document.getElementById('dp');
-    reader.onload = () => { if (dp) dp.src = reader.result; }
-    if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
-}
+        if (enabled) {
+            globalFormActions.classList.remove('hidden');
+        } else {
+            globalFormActions.classList.add('hidden');
+        }
+    };
+
+    editToggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => setEditMode(true));
+    });
+
+    cancelChangesBtn.addEventListener('click', () => {
+        renderProfile(currentProfile); // Revert to original data
+        setEditMode(false);
+    });
+
+    // --- Fetch Profile Data ---
+    const fetchProfile = async () => {
+        try {
+            const response = await fetch('/api/profile/me');
+            const result = await response.json();
+            
+            if (result.success) {
+                currentProfile = result.data;
+                renderProfile(currentProfile);
+            } else {
+                showToast(result.message || 'Failed to load profile', 'danger');
+                if (response.status === 401) {
+                    window.location.href = 'index.html'; // Redirect to login
+                }
+            }
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            showToast('Network error while loading profile', 'danger');
+        }
+    };
+
+    // --- Render Profile to UI ---
+    const renderProfile = (profile) => {
+        if (!profile) return;
+
+        // 1. Sidebar Identity
+        document.getElementById('sidebarFullName').textContent = profile.userId.fullname;
+        document.getElementById('sidebarRole').textContent = profile.jobTitle || 'Role not set';
+        document.getElementById('profileAvatar').src = profile.avatar || '/profileplaceHolder.jfif';
+        document.getElementById('profileStatusBadge').textContent = profile.profileStatus;
+        document.getElementById('profileStatusBadge').className = `badge ${profile.profileStatus.toLowerCase()}`;
+
+        // 2. Header
+        document.getElementById('headerUserName').textContent = profile.userId.fullname;
+        document.getElementById('headerAvatar').src = profile.avatar || '/profileplaceHolder.jfif';
+
+        // 3. Completion Tracker
+        const percentage = profile.completionPercentage || 0;
+        document.getElementById('completionText').textContent = `${percentage}%`;
+        document.getElementById('completionCircle').style.strokeDasharray = `${percentage}, 100`;
+        renderNextSteps(profile);
+
+        // 4. Populate Forms
+        populateForm('basicInfoForm', { ...profile, ...profile.userId });
+        populateForm('professionalForm', profile);
+        populateForm('settingsForm', profile);
+
+        // 5. System Info
+        document.getElementById('sysUserId').textContent = profile.userId.username;
+        document.getElementById('sysCreatedDate').textContent = new Date(profile.userId.createdAt).toLocaleDateString();
+        document.getElementById('sysUpdatedDate').textContent = new Date(profile.lastProfileUpdated).toLocaleDateString();
+        document.getElementById('sysUserRole').textContent = profile.userId.role.charAt(0).toUpperCase() + profile.userId.role.slice(1);
+
+        // 6. Skills Tags
+        renderSkills(profile.skills);
+
+        // 7. Compliance
+        document.getElementById('complianceBgStatus').textContent = profile.backgroundVerificationStatus;
+    };
+
+    const populateForm = (formId, data) => {
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (data[name] !== undefined) {
+                if (input.type === 'date' && data[name]) {
+                    input.value = new Date(data[name]).toISOString().split('T')[0];
+                } else {
+                    input.value = data[name];
+                }
+            }
+        });
+    };
+
+    const renderSkills = (skills) => {
+        const container = document.getElementById('skillsTags');
+        container.innerHTML = '';
+        if (skills && skills.length > 0) {
+            skills.forEach(skill => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `${skill} <i class="fas fa-times" onclick="removeSkill('${skill}')"></i>`;
+                container.appendChild(tag);
+            });
+        }
+    };
+
+    const renderNextSteps = (profile) => {
+        const list = document.getElementById('nextStepsList');
+        list.innerHTML = '';
+        const steps = [];
+        
+        if (!profile.dob) steps.push('Add Date of Birth');
+        if (!profile.jobTitle) steps.push('Set your Job Title');
+        if (!profile.mobileNumber) steps.push('Verify Mobile Number');
+        if (!profile.skills || profile.skills.length === 0) steps.push('Add your Skills');
+
+        steps.forEach(step => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${step}`;
+            list.appendChild(li);
+        });
+        
+        if (steps.length === 0) {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success-color)"></i> Profile is complete!`;
+            list.appendChild(li);
+        }
+    };
+
+    // --- Save Changes ---
+    saveChangesBtn.addEventListener('click', async () => {
+        const basicData = getFormData('basicInfoForm');
+        const professionalData = getFormData('professionalForm');
+        const settingsData = getFormData('settingsForm');
+
+        const combinedUpdates = { ...basicData, ...professionalData, ...settingsData };
+
+        try {
+            const response = await fetch('/api/profile/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(combinedUpdates)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                currentProfile = result.data;
+                renderProfile(currentProfile);
+                setEditMode(false);
+                showToast('Profile updated successfully!', 'success');
+            } else {
+                showToast(result.message || 'Update failed', 'danger');
+            }
+        } catch (error) {
+            showToast('Network error during update', 'danger');
+        }
+    });
+
+    const getFormData = (formId) => {
+        const form = document.getElementById(formId);
+        const data = {};
+        const inputs = form.querySelectorAll('input:not(:disabled), select:not(:disabled), textarea:not(:disabled)');
+        inputs.forEach(input => {
+            if (input.name) data[input.name] = input.value;
+        });
+        return data;
+    };
+
+    // --- Utils ---
+    const showToast = (message, type = 'primary') => {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> <span>${message}</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    };
+
+    // Initial load
+    fetchProfile();
+
+    // --- Skill Management ---
+    const skillInput = document.getElementById('skillInput');
+    if (skillInput) {
+        skillInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter' && skillInput.value.trim() !== '') {
+                const newSkill = skillInput.value.trim();
+                if (!currentProfile.skills.includes(newSkill)) {
+                    const updatedSkills = [...currentProfile.skills, newSkill];
+                    await updateProfileField({ skills: updatedSkills });
+                }
+                skillInput.value = '';
+            }
+        });
+    }
+
+    window.removeSkill = async (skillToRemove) => {
+        const updatedSkills = currentProfile.skills.filter(s => s !== skillToRemove);
+        await updateProfileField({ skills: updatedSkills });
+    };
+
+    const updateProfileField = async (update) => {
+        try {
+            const response = await fetch('/api/profile/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(update)
+            });
+            const result = await response.json();
+            if (result.success) {
+                currentProfile = result.data;
+                renderProfile(currentProfile);
+                showToast('Skills updated', 'success');
+            }
+        } catch (error) {
+            showToast('Failed to update skills', 'danger');
+        }
+    };
+
+    // Dark Mode Toggle logic
