@@ -757,3 +757,5 @@ footer {
 .feature-btn:hover {
     background-color: #2563eb;
 }
+
+@media (max-width: 1024px) {

@@ -3,7 +3,7 @@ function goDashboard() {
 }
 
 function goHome() {
-  window.location.href = "../index.html";
+  window.location.href = "dashboard.html";
 }
 
 function goProfile() {
@@ -70,26 +70,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (welcomeSpan) welcomeSpan.innerText = `Welcome, ${displayName}`;
     }
 
-    // Update Status Cards
-    const results = JSON.parse(localStorage.getItem('assessment_results') || '{}');
-    const profDetails = JSON.parse(localStorage.getItem('professional_details') || '{}');
-    const targetRole = profDetails.targetRole || 'Not Selected';
-    const skillsAssessed = Object.keys(results).length;
-    
-    // Logic for Profile Status
-    const isProfileComplete = profDetails.domain && profDetails.currentRole && profDetails.targetRole;
-    
-    // Status Cards Selection
-    const statusCards = document.querySelectorAll('.status-card');
-    if (statusCards.length >= 3) {
-        // Profile Status
-        statusCards[0].querySelector('p').innerText = isProfileComplete ? 'Completed' : 'Incomplete';
-        statusCards[0].querySelector('p').style.color = isProfileComplete ? '#10b981' : '#ef4444';
-        
-        // Skills Assessed
-        statusCards[1].querySelector('p').innerText = `${skillsAssessed} Skills`;
-        
-        // Target Role
-        statusCards[2].querySelector('p').innerText = targetRole;
-    }
+    // Update Status Cards from API
+    const fetchStats = async () => {
+        try {
+            const response = await fetch('/api/profile/me');
+            const result = await response.json();
+            if (result.success) {
+                const profile = result.data;
+                const statusCards = document.querySelectorAll('.status-card');
+                if (statusCards.length >= 3) {
+                    // Profile Status
+                    statusCards[0].querySelector('p').innerText = profile.profileStatus;
+                    statusCards[0].querySelector('p').style.color = (profile.profileStatus === 'Active' || profile.profileStatus === 'Verified') ? '#10b981' : '#ef4444';
+                    
+                    // Skills Assessed
+                    const assessmentCount = profile.assessments ? profile.assessments.length : 0;
+                    statusCards[1].querySelector('p').innerText = `${assessmentCount} Skills`;
+                    
+                    // Target Role
+                    statusCards[2].querySelector('p').innerText = profile.jobTitle || 'Not Selected';
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch profile stats:", error);
+        }
+    };
+
+    fetchStats();
 });

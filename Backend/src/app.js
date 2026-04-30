@@ -7,8 +7,19 @@ const ProfileRoutes = require("./routes/profile.routes");
 
 const app = express();
 
+// 0. Request Logging Middleware (Moved to top)
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
+
+// 0.5 Explicit Root Route Handler (Prioritized)
+app.get("/", (req, res) => {
+    res.sendFile(path.join(path.resolve(__dirname, "../../Frontend/src"), "index.html"));
+});
 
 // Define paths
 const frontendSrcPath = path.resolve(__dirname, "../../Frontend/src");
@@ -16,22 +27,22 @@ const rootPath = path.resolve(__dirname, "../../");
 
 console.log("Serving frontend from:", frontendSrcPath);
 
-// 0. Request Logging Middleware (Helpful for debugging)
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
-
-// 0.5 Explicit Root Route Handler
-app.get("/", (req, res) => {
-    res.sendFile(path.join(frontendSrcPath, "index.html"));
-});
-
 // 1. Static file serving - serving the frontend files from the 'src' directory
 app.use(express.static(frontendSrcPath));
 
-// 2. Also serve files in the Temp root (images, etc)
-app.use(express.static(rootPath));
+app.get("/health", (req, res) => {
+    res.status(200).send("OK");
+});
+
+// 2. Serve specific assets from the project root safely
+const rootAssets = ["img004.jpg", "background2.jfif", "Background4.jpg.jfif", "Media (8).jfif", "profileplaceHolder.jfif"];
+app.use((req, res, next) => {
+    const fileName = req.path.substring(1); // Remove leading slash
+    if (rootAssets.includes(fileName)) {
+        return res.sendFile(path.join(rootPath, fileName));
+    }
+    next();
+});
 
 // API Routes
 app.use("/api/auth", AuthRoutes);

@@ -7,5 +7,6 @@ const router = express.Router();
 router.get("/me", authMiddleware, profileController.getProfile);
 router.put("/update", authMiddleware, profileController.updateProfile);
 router.post("/avatar", authMiddleware, profileController.uploadAvatar);
+router.post("/assessment/save", authMiddleware, profileController.saveAssessment);
 
 module.exports = router;

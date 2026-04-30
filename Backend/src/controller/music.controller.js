@@ -20,6 +20,7 @@ async function createMusic(req, res) {
 
     const { uri, title, artist } = req.body;
     const user = await userModel.findByID(artist);
+    
 
     if (!user) {
         return res.status(404).json({ message: "user not found" })

@@ -1,5 +1,6 @@
 const Profile = require("../models/profile.model");
 const User = require("../models/user.model");
+const Assessment = require("../models/assessment.model");
 
 const calculateCompletion = (profile, user) => {
     const fields = [
@@ -21,7 +22,7 @@ exports.getProfile = async (req, res) => {
             const user = await User.findById(userId);
             profile = await Profile.create({ 
                 userId,
-                mobileNumber: user.mobileNumber || "" // if it was captured during registration
+                mobileNumber: user ? user.mobileNumber : "" 
             });
             profile = await profile.populate("userId", "username fullname email role createdAt");
         }
@@ -45,6 +46,11 @@ exports.updateProfile = async (req, res) => {
         delete updates.completionPercentage;
         delete updates.lastProfileUpdated;
 
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
         let profile = await Profile.findOne({ userId });
         if (!profile) {
             profile = new Profile({ userId });
@@ -52,10 +58,11 @@ exports.updateProfile = async (req, res) => {
 
         // Apply updates
         Object.assign(profile, updates);
+        profile.userName = user.fullname || user.username;
+        profile.userEmail = user.email;
         profile.lastProfileUpdated = Date.now();
         
         // Update completion percentage
-        const user = await User.findById(userId);
         profile.completionPercentage = calculateCompletion(profile, user);
         
         if (profile.completionPercentage === 100) {
@@ -87,6 +94,53 @@ exports.uploadAvatar = async (req, res) => {
 
         res.status(200).json({ success: true, data: profile });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.saveAssessment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { skill, level, score, passed } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            console.error("User not found for assessment save:", userId);
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Create a separate record in the Assessments collection
+        const newAssessment = new Assessment({
+            userId: user._id,
+            userName: user.fullname || user.username,
+            userEmail: user.email,
+            skill,
+            level,
+            score,
+            passed
+        });
+        await newAssessment.save();
+
+        // Also update the Profile (keep for backward compatibility/summary)
+        const profile = await Profile.findOne({ userId });
+        if (profile) {
+            profile.userName = user.fullname || user.username;
+            profile.userEmail = user.email;
+            profile.assessments.push({ 
+                userName: user.fullname || user.username,
+                userEmail: user.email,
+                skill, 
+                level, 
+                score, 
+                passed
+            });
+            profile.lastProfileUpdated = Date.now();
+            await profile.save();
+        }
+
+        res.status(200).json({ success: true, message: "Assessment stored successfully", data: newAssessment });
+    } catch (error) {
+        console.error("Save Assessment Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

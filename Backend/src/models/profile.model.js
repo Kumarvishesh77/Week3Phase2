@@ -7,6 +7,8 @@ const profileSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    userName: { type: String },
+    userEmail: { type: String },
     // 1️⃣ PROFILE HEADER (TOP CARD) - Data derived from other fields or separate for this view
     avatar: {
         type: String, // URL or Base64
@@ -40,6 +42,15 @@ const profileSchema = new mongoose.Schema({
     workLocation: { type: String, default: "" },
     totalExperience: { type: Number, default: 0 }, // In years
     skills: [{ type: String }],
+    assessments: [{
+        userName: { type: String },
+        userEmail: { type: String },
+        skill: { type: String },
+        level: { type: String },
+        score: { type: Number },
+        passed: { type: Boolean },
+        date: { type: Date, default: Date.now }
+    }],
     certifications: [{ type: String }],
     resumeUrl: { type: String, default: "" },
 

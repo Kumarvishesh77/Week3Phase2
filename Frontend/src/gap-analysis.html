@@ -90,16 +90,33 @@
             window.location.href = 'index.html';
         }
 
-        function runAnalysis() {
+        let assessmentResults = {};
+
+        async function fetchAssessmentData() {
+            try {
+                const response = await fetch('/api/profile/me');
+                const result = await response.json();
+                if (result.success && result.data.assessments) {
+                    // Convert array to the object format expected by runAnalysis
+                    result.data.assessments.forEach(item => {
+                        assessmentResults[item.skill] = { currentLevel: item.level };
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch assessment data:", error);
+            }
+        }
+
+        async function runAnalysis() {
+            await fetchAssessmentData();
             const role = document.getElementById('role-select').value;
-            const results = JSON.parse(localStorage.getItem('assessment_results') || '{}');
             const requirements = roleRequirements[role];
             
             const resultsContainer = document.getElementById('analysis-results');
             const gapsList = document.getElementById('gaps-list');
             const noDataMsg = document.getElementById('no-data-msg');
 
-            if (Object.keys(results).length === 0) {
+            if (Object.keys(assessmentResults).length === 0) {
                 resultsContainer.style.display = 'none';
                 noDataMsg.style.display = 'block';
                 return;
@@ -114,7 +131,7 @@
 
             for (const skill in requirements) {
                 const requiredLevel = requirements[skill];
-                const userSkillData = results[skill] || { currentLevel: "None" };
+                const userSkillData = assessmentResults[skill] || { currentLevel: "None" };
                 const userLevel = userSkillData.currentLevel;
 
                 const reqIdx = levels.indexOf(requiredLevel);
@@ -149,6 +166,9 @@
             // Save the gaps for roadmap generation
             localStorage.setItem('target_role', role);
         }
+
+        // Initial fetch
+        fetchAssessmentData();
 
         // Theme logic
         const toggleBtn = document.getElementById('darkModeToggle');
