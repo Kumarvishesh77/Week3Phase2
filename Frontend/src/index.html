@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkillBridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -14,8 +16,6 @@
     <header>
         <h2 class="logo">Skill<span>Bridge</span></h2>
         <nav class="navigation">
-            <a href="index.html">Home</a>
-            <a href="profile.html">Profile</a>
             <button id="darkModeToggle">
                 <i class="fas fa-moon"></i>
             </button>
@@ -34,7 +34,7 @@
         </p>
 
         <div class="cta-buttons">
-            <button class="start" onclick="location.href='assessment.html'">Get Started</button>
+            <button class="start">Get Started</button>
             <button class="secondary">Learn More</button>
         </div>
     </div>
@@ -138,6 +138,56 @@
                     <p>Already have an account?<a href="#" class="login-link">Login</a></p>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Learn More Modal -->
+    <div class="wrapper learn-more-modal">
+        <span class="icon-close learn-more-close">
+            <ion-icon name="close"></ion-icon>
+        </span>
+        <div class="form-box">
+            <h2>Skill<span>Bridge</span> Overview</h2>
+            <div class="scroll-content">
+                <div class="content-section">
+                    <h3>Platform Purpose</h3>
+                    <p>SkillBridge helps you understand your current skill readiness and provides clear guidance toward your target role.</p>
+                </div>
+                
+                <div class="content-section">
+                    <h3>How it Works</h3>
+                    <ul class="flow-list">
+                        <li><strong>Profile Creation:</strong> Capture your background, skills, and career goals.</li>
+                        <li><strong>Skill Assessment:</strong> Measure your current proficiency through structured evaluations.</li>
+                        <li><strong>Skill Gap Analysis:</strong> Identify strengths, improvement areas, and missing skills for your target role.</li>
+                        <li><strong>Personalized Roadmap:</strong> Follow a prioritized learning path to achieve your career objectives.</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h3>User Benefits</h3>
+                    <ul class="benefits-list">
+                        <li>Clear understanding of your skill readiness</li>
+                        <li>Visibility into strengths and improvement areas</li>
+                        <li>Role‑based skill gap insights</li>
+                        <li>Actionable guidance for learning and growth</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h3>Who is it for?</h3>
+                    <div class="user-tags">
+                        <span>Students</span>
+                        <span>Beginners</span>
+                        <span>Professionals</span>
+                        <span>Career Switchers</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; font-size: 0.9em; color: var(--primary-btn); font-weight: 500; margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
+                    Complete your profile to get started with skill assessment and gap analysis.
+                </p>
+            </div>
         </div>
     </div>
 <section class="features">

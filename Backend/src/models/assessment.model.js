@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
 const assessmentSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
     userName: {
         type: String,
         required: true
@@ -22,13 +17,18 @@ const assessmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    status: {
+        type: String,
+        enum: ["Started", "Completed"],
+        default: "Started"
+    },
     score: {
         type: Number,
-        required: true
+        default: 0
     },
     passed: {
         type: Boolean,
-        required: true
+        default: false
     },
     date: {
         type: Date,

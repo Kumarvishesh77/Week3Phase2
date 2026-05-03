@@ -35,7 +35,7 @@ app.get("/health", (req, res) => {
 });
 
 // 2. Serve specific assets from the project root safely
-const rootAssets = ["img004.jpg", "background2.jfif", "Background4.jpg.jfif", "Media (8).jfif", "profileplaceHolder.jfif"];
+const rootAssets = ["img004.jpg", "background2.jfif", "Background4.jpg.jfif", "Media (8).jfif", "profileplaceHolder.jfif", "beginner_questions.json"];
 app.use((req, res, next) => {
     const fileName = req.path.substring(1); // Remove leading slash
     if (rootAssets.includes(fileName)) {

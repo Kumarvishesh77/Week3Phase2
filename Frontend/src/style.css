@@ -759,3 +759,126 @@ footer {
 }
 
 @media (max-width: 1024px) {
+    .maincontainer {
+        flex-direction: column;
+        padding: 40px 20px;
+        gap: 40px;
+    }
+}
+
+/* Learn More Modal Styles */
+.learn-more-modal {
+    width: 600px;
+    height: 700px;
+    padding: 0;
+}
+
+.learn-more-modal .form-box {
+    padding: 30px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.learn-more-modal h2 {
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.scroll-content {
+    overflow-y: auto;
+    padding-right: 10px;
+    flex-grow: 1;
+}
+
+.scroll-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-content::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+
+.content-section {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.content-section h3 {
+    font-size: 1.2rem;
+    color: var(--primary-btn);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.content-section p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--para-color);
+}
+
+.flow-list, .benefits-list {
+    list-style: none;
+    padding: 0;
+}
+
+.flow-list li, .benefits-list li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--para-color);
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 20px;
+}
+
+.flow-list li::before, .benefits-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary-btn);
+    font-weight: bold;
+}
+
+.user-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.user-tags span {
+    background: var(--glass-border);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+}
+
+.cta-buttons-modal {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding-bottom: 10px;
+}
+
+.cta-buttons-modal .btn {
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+.learn-more-close {
+    z-index: 1001;
+}
+
+@media (max-width: 650px) {
+    .learn-more-modal {
+        width: 90%;
+        height: 80%;
+    }
+    
+    .cta-buttons-modal {
+        flex-direction: column;
+    }
+}

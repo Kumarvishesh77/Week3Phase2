@@ -25,7 +25,6 @@ async function registerUser(req, res) {
             });
         }
 
-        // Use fullname as username for now, ensuring it's unique in a real app
         const username = fullname;
 
         const userAlreadyExist = await userModel.findOne({
@@ -36,7 +35,6 @@ async function registerUser(req, res) {
             return res.status(409).json({ message: "User already exists" });
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = new userModel({
@@ -51,10 +49,16 @@ async function registerUser(req, res) {
 
         await user.save();
 
-        // Auto-create Profile for the user
+        // Auto-create Profile with registration data including Age and Gender
         await profileModel.create({
             userId: user._id,
-            gender: user.gender || "Prefer not to say"
+            userName: user.fullname,
+            userEmail: user.email,
+            age: user.age,
+            gender: user.gender,
+            avatar: "/profileplaceHolder.jfif",
+            profileStatus: "Incomplete",
+            completionPercentage: 30 
         });
 
         const token = jwt.sign(
@@ -69,6 +73,7 @@ async function registerUser(req, res) {
             user: {
                 userid: user._id,
                 username: user.username,
+                fullname: user.fullname,
                 email: user.email,
                 role: user.role
             }
@@ -110,6 +115,7 @@ async function loginUser(req, res) {
             message: "Login successful",
             user: {
                 username: user.username,
+                fullname: user.fullname,
                 email: user.email,
                 role: user.role
             }
@@ -129,18 +135,15 @@ async function forgotPassword(req, res) {
 
         const user = await userModel.findOne({ email });
 
-        // Security best practice: don't reveal if user exists
         if (!user) {
             return res.status(200).json({ message: "If an account exists with this email, a password reset link has been sent." });
         }
 
-        // Generate reset token
         const resetToken = crypto.randomBytes(32).toString("hex");
         const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-        // Save token to database with 1 hour expiry
         user.resetPasswordToken = resetTokenHash;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        user.resetPasswordExpires = Date.now() + 3600000;
         await user.save();
 
         const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password.html?token=${resetToken}`;
@@ -183,7 +186,6 @@ async function resetPassword(req, res) {
             return res.status(400).json({ message: "Token is invalid or has expired" });
         }
 
-        // Set new password
         user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;

@@ -544,3 +544,32 @@ body.dark-mode {
 
 body.dark-mode .system-grid { background: #252525; }
 body.dark-mode .readonly-field { background: #222 !important; }
+
+/* Utility Classes */
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.w-100 { width: 100%; }
+
+.disabled-nav {
+    pointer-events: none;
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.skill-entry-row {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: var(--radius);
+    border: 1px dashed var(--border-color);
+}
+
+body.dark-mode .skill-entry-row {
+    background: #252525;
+}
+
+.completion-hint {
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}

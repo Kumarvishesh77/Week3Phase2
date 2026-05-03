@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the primary purpose of a version control system like Git?",
+      "options": [
+        "To compile code faster",
+        "To track changes in source code and enable collaboration",
+        "To design user interfaces",
+        "To manage database backups only"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "To track changes in source code and enable collaboration"
+    },
+    {
+      "id": 2,
+      "question": "In programming, what is a 'variable'?",
+      "options": [
+        "A fixed value that never changes",
+        "A storage location identified by a name that can hold data",
+        "A type of syntax error",
+        "A hardware component"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "A storage location identified by a name that can hold data"
+    },
+    {
+      "id": 3,
+      "question": "Which of the following is a fundamental data type used to represent text?",
+      "options": [
+        "Integer",
+        "Boolean",
+        "String",
+        "Float"
+      ],
+      "correctOptionIndex": 2,
+      "answer": "String"
+    },
+    {
+      "id": 4,
+      "question": "What does 'HTML' stand for in web development?",
+      "options": [
+        "Hyper Text Markup Language",
+        "High Tech Modern Language",
+        "Hyperlink Tool Management Logic",
+        "Home Tool Markup Language"
+      ],
+      "correctOptionIndex": 0,
+      "answer": "Hyper Text Markup Language"
+    },
+    {
+      "id": 5,
+      "question": "What is the main function of an operating system?",
+      "options": [
+        "To browse the internet",
+        "To manage computer hardware and software resources",
+        "To write documents",
+        "To play videos"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "To manage computer hardware and software resources"
+    },
+    {
+      "id": 6,
+      "question": "What is the result of '10' + 5 in JavaScript?",
+      "options": [
+        "15",
+        "105",
+        "Error",
+        "undefined"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "105 (due to string concatenation)"
+    },
+    {
+      "id": 7,
+      "question": "Which HTTP method is typically used to retrieve data from a server?",
+      "options": [
+        "POST",
+        "PUT",
+        "GET",
+        "DELETE"
+      ],
+      "correctOptionIndex": 2,
+      "answer": "GET"
+    },
+    {
+      "id": 8,
+      "question": "What is a 'database'?",
+      "options": [
+        "A type of monitor",
+        "An organized collection of structured information or data",
+        "A programming language",
+        "A web server"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "An organized collection of structured information or data"
+    },
+    {
+      "id": 9,
+      "question": "What is the purpose of a 'loop' in programming?",
+      "options": [
+        "To exit the program",
+        "To execute a block of code repeatedly",
+        "To define a new variable",
+        "To comment out code"
+      ],
+      "correctOptionIndex": 1,
+      "answer": "To execute a block of code repeatedly"
+    },
+    {
+      "id": 10,
+      "question": "Which of these is used to style web pages?",
+      "options": [
+        "SQL",
+        "Python",
+        "CSS",
+        "PHP"
+      ],
+      "correctOptionIndex": 2,
+      "answer": "CSS"
+    }
+  ]
+}

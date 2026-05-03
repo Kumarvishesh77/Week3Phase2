@@ -6,6 +6,7 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let timerInterval = null;
 let timeLeft = 0;
+let currentAssessmentId = null; // To track the DB record
 
 const selectionScreen = document.getElementById('selection-screen');
 const quizScreen = document.getElementById('quiz-screen');
@@ -59,95 +60,12 @@ if (skillInput) {
 
 const LEVEL_CONFIG = {
     'Beginner': { count: 10, time: 600 },
-    'Intermediate': { count: 15, time: 1200 },
-    'Advanced': { count: 20, time: 2400 }
+    'Intermediate': { count: 20, time: 1200 },
+    'Advanced': { count: 30, time: 2400 }
 };
 
 /**
- * Advanced MNC-Grade MCQ Generator
- * Enforces zero-repetition and high technical diversity
- */
-function generateAIMCQs(skill, level) {
-    const config = LEVEL_CONFIG[level];
-    const generated = [];
-    
-    // Massive bank of unique technical domains
-    const technicalDomains = [
-        { topic: "Memory Management", verbs: ["leak detection", "stack allocation", "GC overhead"], scenarios: ["high-throughput services", "embedded systems"] },
-        { topic: "Security", verbs: ["input sanitization", "jwt validation", "cors configuration"], scenarios: ["public api gateways", "banking modules"] },
-        { topic: "Concurrency", verbs: ["mutex locking", "atomic operations", "race condition mitigation"], scenarios: ["multi-threaded processors", "real-time dashboards"] },
-        { topic: "Data Persistence", verbs: ["query indexing", "sharding logic", "acid compliance"], scenarios: ["distributed databases", "legacy migration"] },
-        { topic: "API Design", verbs: ["idempotency", "rate limiting", "payload serialization"], scenarios: ["microservice architecture", "third-party integrations"] },
-        { topic: "Performance", verbs: ["caching layers", "asynchronous tasks", "payload compression"], scenarios: ["low-bandwidth environments", "heavy-traffic events"] },
-        { topic: "Testing", verbs: ["mocking dependencies", "integration coverage", "boundary analysis"], scenarios: ["ci/cd pipelines", "automated qa suites"] },
-        { topic: "Architecture", verbs: ["service decoupling", "event-driven hooks", "state persistence"], scenarios: ["cloud-native apps", "modular monoliths"] },
-        { topic: "Error Handling", verbs: ["exception bubbling", "graceful degradation", "retry backoffs"], scenarios: ["unstable networks", "fault-tolerant systems"] },
-        { topic: "Cloud Native", verbs: ["container orchestration", "serverless scaling", "config-map usage"], scenarios: ["kubernetes clusters", "aws lambda functions"] }
-    ];
-
-    // Different ways to ask a question (Sentence Structures)
-    const questionStems = [
-        (v, s) => `While implementing ${v} for ${skill} in ${s}, which approach is most effective?`,
-        (v, s) => `A critical failure occurs in ${skill} due to improper ${v}. How should this be resolved in ${s}?`,
-        (v, s) => `Consider the ${v} lifecycle within ${skill}. Which specific configuration is required for ${s}?`,
-        (v, s) => `In a ${s} context, what is the primary risk of neglecting ${v} when using ${skill}?`,
-        (v, s) => `How would you refactor ${skill} logic to improve ${v} during a ${s} deployment?`
-    ];
-
-    const shuffledDomains = technicalDomains.sort(() => 0.5 - Math.random());
-
-    for (let i = 0; i < config.count; i++) {
-        const domain = shuffledDomains[i % shuffledDomains.length];
-        const stem = questionStems[Math.floor(Math.random() * questionStems.length)];
-        const verb = domain.verbs[Math.floor(Math.random() * domain.verbs.length)];
-        const scenario = domain.scenarios[Math.floor(Math.random() * domain.scenarios.length)];
-
-        // Highly varied option templates to avoid repetition
-        const optionTemplates = [
-            {
-                correct: `Implement a robust ${verb} strategy specifically designed for ${skill} ${domain.topic} management.`,
-                wrongs: [
-                    `Use a generic ${domain.topic} library that ignores ${skill}-specific ${verb} constraints.`,
-                    `Manually handle ${verb} by overriding the default ${skill} runtime behavior.`,
-                    `Disable ${verb} checks to prioritize raw performance in ${scenario}.`
-                ]
-            },
-            {
-                correct: `Optimize the ${skill} ${domain.topic} layer to handle ${verb} during ${scenario}.`,
-                wrongs: [
-                    `Standardize all ${skill} components to use legacy ${verb} protocols.`,
-                    `Increase ${domain.topic} allocation without addressing the underlying ${verb} issue.`,
-                    `Outsource ${verb} logic to a third-party service that doesn't support ${skill}.`
-                ]
-            },
-            {
-                correct: `Configure a dedicated ${skill} listener to monitor ${verb} events in ${scenario}.`,
-                wrongs: [
-                    `Rely on global ${domain.topic} settings which may conflict with ${verb} requirements.`,
-                    `Encapsulate ${skill} logic within a ${verb}-blind container.`,
-                    `Apply a one-size-fits-all ${domain.topic} policy regardless of the ${verb} state.`
-                ]
-            }
-        ];
-
-        const selectedTemplate = optionTemplates[i % optionTemplates.length];
-        const options = [
-            selectedTemplate.correct,
-            ...selectedTemplate.wrongs
-        ].sort(() => 0.5 - Math.random());
-
-        generated.push({
-            id: i + 1,
-            question: stem(verb, scenario),
-            options: options,
-            answer: selectedTemplate.correct
-        });
-    }
-    return generated;
-}
-
-/**
- * Initialize Assessment
+ * Initialize Assessment by calling Backend AI
  */
 async function initAssessment() {
     let inputVal = skillInput.value.trim();
@@ -156,12 +74,120 @@ async function initAssessment() {
     currentSkillName = inputVal;
     currentLevel = document.getElementById('level-select').value;
     
-    selectionScreen.innerHTML = '<h2>SkillBridge AI generating unique Technical MCQs...</h2><div class="loader"></div>';
+    // SHOW LOADING SCREEN IMMEDIATELY
+    selectionScreen.innerHTML = `
+        <div style="text-align: left; max-width: 800px; margin: 0 auto; background: #ffffff10; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); backdrop-filter: blur(20px);">
+            <!-- Enterprise Header -->
+            <div style="background: var(--accent); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="color: white; margin: 0; font-size: 1.4em; letter-spacing: 0.5px;">Technical Competency Evaluation</h2>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.85em; margin-top: 4px;">Assessment ID: SB-${Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; font-weight: 600; text-transform: uppercase;">
+                    <i class="fas fa-shield-alt"></i> Secure Session
+                </div>
+            </div>
+
+            <div style="padding: 40px;">
+                <div style="margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.2em; color: var(--accent);">Subject: ${currentSkillName}</h3>
+                    <p style="margin: 0; opacity: 0.7; font-size: 0.95em;">Level: ${currentLevel} Proficiency</p>
+                </div>
+
+                <!-- Assessment Parameters Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 35px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
+                        <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Items</div>
+                        <div style="font-weight: 600;">${LEVEL_CONFIG[currentLevel].count} MCQs</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
+                        <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Time Limit</div>
+                        <div style="font-weight: 600;">${LEVEL_CONFIG[currentLevel].time / 60} Mins</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
+                        <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Max Score</div>
+                        <div style="font-weight: 600;">100</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
+                        <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Passing Score</div>
+                        <div style="font-weight: 600;">70</div>
+                    </div>
+                </div>
+
+                <div id="loading-status" style="text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px;">
+                    <div class="loader" style="margin: 0 auto; width: 30px; height: 30px; border-width: 3px;"></div>
+                    <p id="dynamic-loading-text" style="opacity: 0.6; margin-top: 15px; font-size: 0.85em; letter-spacing: 0.5px;">Initializing secure examination environment...</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 1. Record the start in Database (Non-blocking)
+    fetch('/api/profile/assessment/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skill: currentSkillName, level: currentLevel })
+    }).then(res => res.json()).then(data => {
+        if (data.success) currentAssessmentId = data.assessmentId;
+    }).catch(e => console.error("DB Error:", e));
+
+
+    // Dynamic loading messages
+    const loadingTexts = [
+        "Analyzing technical competencies...",
+        "Curating high-impact industry questions...",
+        "Validating assessment framework...",
+        "Synchronizing with AI Engine...",
+        "Almost ready - preparing your environment..."
+    ];
+    let textIdx = 0;
+    const loadingInterval = setInterval(() => {
+        const p = document.getElementById('dynamic-loading-text');
+        if (p) {
+            p.innerText = loadingTexts[textIdx % loadingTexts.length];
+            textIdx++;
+        }
+    }, 3000);
     
-    setTimeout(() => {
-        questions = generateAIMCQs(currentSkillName, currentLevel);
+    try {
+        const response = await fetch('/api/ai/generate-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ skill: currentSkillName, level: currentLevel })
+        });
+
+        clearInterval(loadingInterval);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            // Propagate the details if available so the catch block can see "Quota"
+            const fullErrorMsg = errorData.details ? `${errorData.message}: ${errorData.details}` : (errorData.message || "Failed to generate assessment");
+            throw new Error(fullErrorMsg);
+        }
+
+        const data = await response.json();
+        questions = data.questions;
         startAssessmentFlow();
-    }, 1500);
+    } catch (error) {
+        console.error("Assessment Generation Error:", error);
+        
+        // Fallback Logic
+        console.log("Attempting fallback to local quiz data...");
+        const resolved = typeof resolveSkill === 'function' ? resolveSkill(currentSkillName) : null;
+        if (resolved && typeof domainQuizData !== 'undefined' && domainQuizData[resolved.domain] && domainQuizData[resolved.domain][currentLevel]) {
+            questions = domainQuizData[resolved.domain][currentLevel];
+            if (questions && questions.length > 0) {
+                console.log("Fallback successful.");
+                alert("AI Engine is currently busy (Quota reached). Loading standard assessment for " + currentSkillName + ".");
+                startAssessmentFlow();
+                return;
+            }
+        }
+
+        const cleanMsg = error.message.includes("Quota") ? "AI Quota Exceeded. Please try again later or use a different API key." : error.message;
+        alert("Error: " + cleanMsg);
+        location.reload(); // Reset the UI
+    }
 }
 
 function startAssessmentFlow() {
@@ -250,41 +276,106 @@ function submitQuiz() {
 function showResults(score) {
     quizScreen.style.display = 'none';
     resultScreen.style.display = 'block';
-    document.getElementById('score-display').innerText = `${score}%`;
-    const isPassed = score >= 70;
+
+    const scoreValue = document.getElementById('score-value');
+    const circularProgress = document.getElementById('circular-progress');
+    const readinessLevel = document.getElementById('readiness-level');
+    const guidanceText = document.getElementById('guidance-text');
+    const insightList = document.getElementById('insight-list');
+
+    // Update Score and Circle
+    scoreValue.innerText = `${score}%`;
+    const degree = (score / 100) * 360;
     
-    // Save Assessment to Backend
+    let levelMaturity = "Beginner";
+    let color = "#3b82f6";
+    let isPassed = score >= 70;
+
+    if (score >= 85) {
+        levelMaturity = "Advanced";
+        color = "#10b981";
+    } else if (score >= 70) {
+        levelMaturity = "Intermediate";
+        color = "#3b82f6";
+    } else {
+        levelMaturity = "Beginner";
+        color = "#f59e0b";
+    }
+
+    circularProgress.style.setProperty('--progress-color', color);
+    circularProgress.style.setProperty('--progress-deg', `${degree}deg`);
+    
+    // Progression UI Logic
+    let progressionHtml = "";
+    if (isPassed) {
+        const nextLevel = currentLevel === 'Beginner' ? 'Intermediate' : currentLevel === 'Intermediate' ? 'Advanced' : 'None';
+        proginessTitle = `<h3 style="color: #10b981; margin-bottom: 10px;">${currentLevel} Level Completed!</h3>`;
+        readinessLevel.innerHTML = `${proginessTitle} Readiness: ${levelMaturity}`;
+        
+        if (nextLevel !== 'None') {
+            progressionHtml = `
+                <div style="margin-top: 25px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <p style="margin-bottom: 15px; font-weight: 500;">Ready to level up? Start your <strong>${nextLevel}</strong> assessment.</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="startNextLevel('${nextLevel}')" class="btn" style="background: var(--accent); padding: 10px 20px;">Proceed to ${nextLevel}</button>
+                        <button onclick="location.href='gap-analysis.html'" class="btn" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 10px 20px;">View Gap Analysis</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            progressionHtml = `<p style="margin-top: 20px; color: #10b981; font-weight: 600;">Congratulations! You have mastered the Advanced level.</p>
+                               <button onclick="location.href='gap-analysis.html'" class="btn" style="margin-top: 15px;">View Career Roadmap</button>`;
+        }
+        guidanceText.innerText = `Excellent! You have successfully cleared the ${currentLevel} level. Your profile has been updated.`;
+    } else {
+        readinessLevel.innerText = `Current Proficiency: ${levelMaturity}`;
+        progressionHtml = `
+            <div style="margin-top: 20px;">
+                <button onclick="location.reload()" class="btn" style="background: var(--accent);">Retake ${currentLevel} Assessment</button>
+                <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">A score of 70% is required to unlock the next level.</p>
+            </div>
+        `;
+        guidanceText.innerText = "You haven't reached the passing threshold yet. Review the key areas below and try again.";
+    }
+
+    // Insert progression actions
+    const actionArea = document.getElementById('progression-actions') || document.createElement('div');
+    actionArea.id = 'progression-actions';
+    actionArea.innerHTML = progressionHtml;
+    guidanceText.parentNode.insertBefore(actionArea, guidanceText.nextSibling);
+
+    // Generate Insights
+    const insights = [
+        `Competency in ${currentSkillName} ${currentLevel} fundamentals.`,
+        `Successful validation of technical workflows for this level.`,
+        `Identified path for progression to ${currentLevel === 'Advanced' ? 'Expert' : 'the next'} stage.`
+    ];
+    
+    insightList.innerHTML = '';
+    insights.forEach(insight => {
+        const li = document.createElement('li');
+        li.innerHTML = `<i class="fas fa-check-circle"></i> ${insight}`;
+        insightList.appendChild(li);
+    });
+
     saveAssessmentToBackend(currentSkillName, currentLevel, score, isPassed);
-
-    document.getElementById('result-message').innerHTML = isPassed 
-        ? `<span style="color: #10b981; font-weight: bold;">PASSED - VERIFIED</span>`
-        : `<span style="color: #ef4444; font-weight: bold;">NOT PASSED</span>`;
-
-    if (!isPassed) renderRemediation(currentSkillName, currentLevel);
 }
+
+window.startNextLevel = (level) => {
+    document.getElementById('level-select').value = level;
+    initAssessment();
+};
 
 async function saveAssessmentToBackend(skill, level, score, passed) {
     try {
         const response = await fetch('/api/profile/assessment/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ skill, level, score, passed })
+            body: JSON.stringify({ skill, level, score, passed, assessmentId: currentAssessmentId })
         });
         const result = await response.json();
         console.log("Assessment saved:", result);
     } catch (error) {
         console.error("Failed to save assessment:", error);
     }
-}
-
-function renderRemediation(skill, level) {
-    const div = document.createElement('div');
-    div.style.marginTop = "20px";
-    div.innerHTML = `
-        <div style="background: rgba(239, 68, 68, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2);">
-            <h4 style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i> Identified Skill Gaps</h4>
-            <p style="font-size: 14px;">Assessment indicates gaps in ${skill} ${level} architecture and technical workflow management.</p>
-        </div>
-    `;
-    resultScreen.appendChild(div);
 }

@@ -84,19 +84,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             wrapper.classList.add('active-popup');
+            wrapper.classList.add('active');
+            wrapper.classList.remove('active-forgot');
             if (mainContainer) mainContainer.classList.add('hide');
         });
     }
 
-    // Functionality for "Home" navigation link
-    navLinks.forEach(link => {
-        if (link.textContent.trim().toLowerCase() === 'home') {
-            link.addEventListener('click', () => {
-                wrapper.classList.remove('active-popup');
+    // Functionality for "Learn More" button
+    const learnMoreBtn = document.querySelector('.secondary');
+    const learnMoreModal = document.querySelector('.learn-more-modal');
+    const learnMoreClose = document.querySelector('.learn-more-close');
+    const modalGetStarted = document.querySelector('.modal-get-started');
+    const modalCreateProfile = document.querySelector('.modal-create-profile');
+
+    if (learnMoreBtn) {
+        learnMoreBtn.addEventListener('click', () => {
+            if (learnMoreModal) {
+                learnMoreModal.classList.add('active-popup');
+                if (mainContainer) mainContainer.classList.add('hide');
+            }
+        });
+    }
+
+    if (learnMoreClose) {
+        learnMoreClose.addEventListener('click', () => {
+            if (learnMoreModal) {
+                learnMoreModal.classList.remove('active-popup');
                 if (mainContainer) mainContainer.classList.remove('hide');
-            });
-        }
-    });
+            }
+        });
+    }
+
+    if (modalGetStarted) {
+        modalGetStarted.addEventListener('click', () => {
+            if (learnMoreModal) learnMoreModal.classList.remove('active-popup');
+            wrapper.classList.add('active-popup');
+            wrapper.classList.add('active');
+            if (mainContainer) mainContainer.classList.add('hide');
+        });
+    }
+
+    if (modalCreateProfile) {
+        modalCreateProfile.addEventListener('click', () => {
+            if (learnMoreModal) learnMoreModal.classList.remove('active-popup');
+            wrapper.classList.add('active-popup');
+            wrapper.classList.add('active');
+            if (mainContainer) mainContainer.classList.add('hide');
+        });
+    }
+
+    // Functionality for "Home" navigation link removed as Home button is removed
 
     // Password Visibility Toggle
     const togglePasswords = document.querySelectorAll('.toggle-password');

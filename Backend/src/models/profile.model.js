@@ -9,94 +9,51 @@ const profileSchema = new mongoose.Schema({
     },
     userName: { type: String },
     userEmail: { type: String },
-    // 1️⃣ PROFILE HEADER (TOP CARD) - Data derived from other fields or separate for this view
     avatar: {
-        type: String, // URL or Base64
+        type: String,
         default: "/profileplaceHolder.jfif"
     },
-    jobTitle: { type: String, default: "" },
-    department: { type: String, default: "" },
-    organizationName: { type: String, default: "SkillBridge" },
+    
+    // Basic Details (Additional)
+    age: { type: Number },
+    gender: { type: String },
+
+    // Career Status
+    currentStatus: {
+        type: String,
+        enum: ["Student", "Working Professional", "Career Switcher", "Beginner"],
+        default: "Beginner"
+    },
+    roleOrStudy: { type: String, default: "" },
+    totalExperience: { type: Number, default: 0 },
+    
+    // Skills & Goals
+    skills: [{
+        name: { type: String },
+        proficiency: { type: String, enum: ["Beginner", "Intermediate", "Advanced"] }
+    }],
+    targetRole: { type: String, default: "" },
+    
+    // Other Details
+    mobileNumber: { type: String, default: "" },
+    
+    // Completion Logic
     profileStatus: {
         type: String,
-        enum: ["Active", "Incomplete", "Verified"],
+        enum: ["Complete", "Incomplete"],
         default: "Incomplete"
     },
     completionPercentage: { type: Number, default: 0 },
 
-    // 2️⃣ BASIC INFORMATION
-    dob: { type: Date },
-    gender: { type: String, enum: ["Male", "Female", "Other", "Prefer not to say"], default: "Prefer not to say" },
-    nationality: { type: String, default: "" },
-    secondaryEmail: { type: String, default: "" },
-    mobileNumber: { type: String, default: "" },
-
-    // 3️⃣ PROFESSIONAL DETAILS
-    reportingManager: { type: String, default: "" },
-    employmentType: {
-        type: String,
-        enum: ["Permanent", "Contract", "Intern", "Part-time"],
-        default: "Permanent"
-    },
-    joiningDate: { type: Date },
-    workLocation: { type: String, default: "" },
-    totalExperience: { type: Number, default: 0 }, // In years
-    skills: [{ type: String }],
     assessments: [{
-        userName: { type: String },
-        userEmail: { type: String },
         skill: { type: String },
         level: { type: String },
         score: { type: Number },
         passed: { type: Boolean },
         date: { type: Date, default: Date.now }
     }],
-    certifications: [{ type: String }],
-    resumeUrl: { type: String, default: "" },
 
-    // 4️⃣ CONTACT INFORMATION
-    officeEmail: { type: String, default: "" },
-    personalEmail: { type: String, default: "" },
-    officePhone: { type: String, default: "" },
-    emergencyContactName: { type: String, default: "" },
-    emergencyContactNumber: { type: String, default: "" },
-    residentialAddress: { type: String, default: "" },
-    officeAddress: { type: String, default: "" },
-
-    // 5️⃣ EDUCATION DETAILS (MULTI-ENTRY)
-    education: [{
-        degree: { type: String },
-        institution: { type: String },
-        university: { type: String },
-        graduationYear: { type: Number },
-        grade: { type: String }
-    }],
-
-    // 6️⃣ IDENTIFICATION & COMPLIANCE (ADMIN / HR ACCESS)
-    govtIdType: { type: String, default: "" },
-    idNumber: { type: String, default: "" }, // Should be encrypted/masked in production
-    nationalId: { type: String, default: "" }, // PAN / SSN
-    workAuthorization: { type: String, default: "" },
-    backgroundVerificationStatus: {
-        type: String,
-        enum: ["Not Started", "In Progress", "Verified", "Rejected"],
-        default: "Not Started"
-    },
-
-    // 7️⃣ PREFERENCES & SETTINGS
-    language: { type: String, default: "English" },
-    timeZone: { type: String, default: "UTC" },
-    notificationPreferences: {
-        email: { type: Boolean, default: true },
-        sms: { type: Boolean, default: false },
-        push: { type: Boolean, default: true }
-    },
-    theme: { type: String, enum: ["Light", "Dark"], default: "Light" },
-    communicationPreferences: { type: String, default: "Email" },
-
-    // 8️⃣ SYSTEM INFORMATION (READ-ONLY)
-    lastProfileUpdated: { type: Date, default: Date.now },
-    lastLogin: { type: Date }
-}, { timestamps: true });
+    lastProfileUpdated: { type: Date, default: Date.now }
+}, { timestamps: true, strict: false });
 
 module.exports = mongoose.model("Profile", profileSchema);
