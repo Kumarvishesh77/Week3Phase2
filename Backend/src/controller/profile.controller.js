@@ -139,12 +139,24 @@ exports.startAssessment = async (req, res) => {
     try {
         const userId = req.user.id;
         const { skill, level } = req.body;
+        console.log(`[Assessment Start] User=${userId}, Skill=${skill}, Level=${level}`);
+        
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
-        const newAssessment = new Assessment({ userName: user.fullname || user.username, userEmail: user.email, skill, level, status: "Started" });
+        
+        const newAssessment = new Assessment({ 
+            userName: user.fullname || user.username, 
+            userEmail: user.email, 
+            skill, 
+            level, 
+            status: "Started" 
+        });
         await newAssessment.save();
+        console.log(`[Assessment Start] Created ID: ${newAssessment._id}`);
+        
         res.status(200).json({ success: true, message: "Assessment start recorded", assessmentId: newAssessment._id });
     } catch (error) {
+        console.error("[Assessment Start Error]:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -153,22 +165,49 @@ exports.saveAssessment = async (req, res) => {
     try {
         const userId = req.user.id;
         const { skill, level, score, passed, assessmentId } = req.body;
+        console.log(`[Assessment Save] User=${userId}, Skill=${skill}, Score=${score}, Passed=${passed}, ID=${assessmentId}`);
+
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
         let finalAssessment;
-        if (assessmentId) finalAssessment = await Assessment.findByIdAndUpdate(assessmentId, { score, passed, status: "Completed", date: Date.now() }, { new: true });
+        if (assessmentId) {
+            console.log(`[Assessment Save] Updating existing assessment: ${assessmentId}`);
+            finalAssessment = await Assessment.findByIdAndUpdate(
+                assessmentId, 
+                { score, passed, status: "Completed", date: Date.now() }, 
+                { new: true }
+            );
+        }
+
         if (!finalAssessment) {
-            finalAssessment = new Assessment({ userName: user.fullname || user.username, userEmail: user.email, skill, level, score, passed, status: "Completed" });
+            console.log(`[Assessment Save] Creating new assessment record`);
+            finalAssessment = new Assessment({ 
+                userName: user.fullname || user.username, 
+                userEmail: user.email, 
+                skill, 
+                level, 
+                score, 
+                passed, 
+                status: "Completed" 
+            });
             await finalAssessment.save();
         }
+
         const profile = await Profile.findOne({ userId });
         if (profile) {
+            console.log(`[Assessment Save] Updating profile for user: ${userId}`);
             profile.assessments.push({ skill, level, score, passed, date: Date.now() });
             profile.lastProfileUpdated = Date.now();
             await profile.save();
+            console.log(`[Assessment Save] Profile updated successfully`);
+        } else {
+            console.warn(`[Assessment Save] Profile not found for user: ${userId}`);
         }
+
         res.status(200).json({ success: true, message: "Assessment completion recorded successfully", data: finalAssessment });
     } catch (error) {
+        console.error("[Assessment Save Error]:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

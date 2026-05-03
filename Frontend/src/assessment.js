@@ -59,9 +59,9 @@ if (skillInput) {
 }
 
 const LEVEL_CONFIG = {
-    'Beginner': { count: 10, time: 600 },
-    'Intermediate': { count: 20, time: 1200 },
-    'Advanced': { count: 30, time: 2400 }
+    'Beginner': { count: 10, time: 1200 },
+    'Intermediate': { count: 10, time: 1200 },
+    'Advanced': { count: 10, time: 1200 }
 };
 
 /**
@@ -98,11 +98,11 @@ async function initAssessment() {
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 35px;">
                     <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
                         <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Items</div>
-                        <div style="font-weight: 600;">${LEVEL_CONFIG[currentLevel].count} MCQs</div>
+                        <div style="font-weight: 600;">10 Questions</div>
                     </div>
                     <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
                         <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Time Limit</div>
-                        <div style="font-weight: 600;">${LEVEL_CONFIG[currentLevel].time / 60} Mins</div>
+                        <div style="font-weight: 600;">20 Mins</div>
                     </div>
                     <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
                         <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Max Score</div>
@@ -212,16 +212,44 @@ function showQuestion() {
     
     const qDiv = document.createElement('div');
     qDiv.className = 'question-block';
+    
+    let optionsHtml = '';
+    if (!q.type || q.type === 'mcq') {
+        optionsHtml = `
+            <div class="options-list">
+                ${q.options.map((opt) => `
+                    <label>
+                        <input type="radio" name="q" value="${opt}" onchange="handleAnswerInput()"> ${opt}
+                    </label>
+                `).join('')}
+            </div>
+        `;
+    } else if (q.type === 'checkbox') {
+        optionsHtml = `
+            <div class="options-list">
+                <p style="font-size: 0.85em; opacity: 0.6; margin-bottom: 10px;">Select all that apply:</p>
+                ${q.options.map((opt) => `
+                    <label>
+                        <input type="checkbox" name="q" value="${opt}" onchange="handleAnswerInput()"> ${opt}
+                    </label>
+                `).join('')}
+            </div>
+        `;
+    } else if (q.type === 'written') {
+        optionsHtml = `
+            <div style="margin-top: 15px;">
+                <textarea id="written-answer" placeholder="Type your technical response here..." 
+                    style="width: 100%; height: 120px; padding: 15px; border-radius: 8px; background: #ffffff; color: #000000; border: 1px solid rgba(255,255,255,0.2); font-family: inherit; font-size: 1em;" 
+                    oninput="handleAnswerInput()"></textarea>
+                <p style="font-size: 0.8em; opacity: 0.5; margin-top: 5px;">Provide a concise explanation using relevant technical terms.</p>
+            </div>
+        `;
+    }
+
     qDiv.innerHTML = `
-        <p style="margin-bottom: 10px; opacity: 0.7;">Question ${currentQuestionIndex + 1} of ${questions.length}</p>
-        <p><strong>${q.question}</strong></p>
-        <div class="options-list">
-            ${q.options.map((opt) => `
-                <label>
-                    <input type="radio" name="q" value="${opt}" onchange="handleOptionSelect()"> ${opt}
-                </label>
-            `).join('')}
-        </div>
+        <p style="margin-bottom: 10px; opacity: 0.7; font-size: 0.9em; letter-spacing: 0.5px;">Question ${currentQuestionIndex + 1} of ${questions.length} • ${q.type ? q.type.toUpperCase().replace('CHECKBOX', 'MULTI-SELECT') : 'MCQ'}</p>
+        <p style="font-size: 1.1em; line-height: 1.5; margin-bottom: 20px;"><strong>${q.question}</strong></p>
+        ${optionsHtml}
         <div id="action-container" style="margin-top: 30px; display: flex; justify-content: flex-end; visibility: hidden;">
             ${currentQuestionIndex === questions.length - 1 
                 ? `<button onclick="submitQuiz()" class="btn" style="background: var(--accent);">Complete Assessment</button>` 
@@ -232,16 +260,38 @@ function showQuestion() {
     questionsContainer.appendChild(qDiv);
 }
 
-window.handleOptionSelect = () => {
-    document.getElementById('action-container').style.visibility = 'visible';
+window.handleAnswerInput = () => {
+    const q = questions[currentQuestionIndex];
+    let hasAnswer = false;
+    if (!q.type || q.type === 'mcq') {
+        hasAnswer = !!document.querySelector('input[name="q"]:checked');
+    } else if (q.type === 'checkbox') {
+        hasAnswer = document.querySelectorAll('input[name="q"]:checked').length > 0;
+    } else if (q.type === 'written') {
+        hasAnswer = document.getElementById('written-answer').value.trim().length >= 10;
+    }
+    document.getElementById('action-container').style.visibility = hasAnswer ? 'visible' : 'hidden';
 };
 
 function nextQuestion() {
-    const selected = document.querySelector('input[name="q"]:checked');
-    if (!selected) return;
-    userAnswers.push(selected.value);
+    saveCurrentAnswer();
     currentQuestionIndex++;
     showQuestion();
+}
+
+function saveCurrentAnswer() {
+    const q = questions[currentQuestionIndex];
+    let answer;
+    if (!q.type || q.type === 'mcq') {
+        const selected = document.querySelector('input[name="q"]:checked');
+        answer = selected ? selected.value : "";
+    } else if (q.type === 'checkbox') {
+        const selected = Array.from(document.querySelectorAll('input[name="q"]:checked')).map(el => el.value);
+        answer = selected;
+    } else if (q.type === 'written') {
+        answer = document.getElementById('written-answer').value.trim();
+    }
+    userAnswers[currentQuestionIndex] = answer;
 }
 
 function startTimer() {
@@ -264,13 +314,34 @@ function updateTimerDisplay() {
 }
 
 function submitQuiz() {
-    const selected = document.querySelector('input[name="q"]:checked');
-    if (selected) userAnswers.push(selected.value);
+    saveCurrentAnswer();
     clearInterval(timerInterval);
     
-    let correctCount = 0;
-    questions.forEach((q, i) => { if (userAnswers[i] === q.answer) correctCount++; });
-    showResults(Math.round((correctCount / questions.length) * 100));
+    let totalScore = 0;
+    questions.forEach((q, i) => {
+        const userAns = userAnswers[i];
+        if (!q.type || q.type === 'mcq') {
+            if (userAns === q.answer) totalScore += 1;
+        } else if (q.type === 'checkbox') {
+            // Grading for multi-select: User must select all correct ones and no incorrect ones
+            if (Array.isArray(userAns) && Array.isArray(q.answer)) {
+                const isCorrect = userAns.length === q.answer.length && 
+                                  userAns.every(val => q.answer.includes(val));
+                if (isCorrect) totalScore += 1;
+            }
+        } else if (q.type === 'written') {
+            if (!userAns) return;
+            const modelTokens = q.answer.toLowerCase().split(/\W+/).filter(t => t.length > 3);
+            const userTokens = userAns.toLowerCase().split(/\W+/).filter(t => t.length > 3);
+            const matches = modelTokens.filter(t => userTokens.includes(t));
+            const matchRatio = matches.length / Math.max(1, modelTokens.length);
+            
+            if (matchRatio >= 0.5) totalScore += 1;
+            else if (matchRatio >= 0.2) totalScore += 0.5;
+        }
+    });
+    
+    showResults(Math.round((totalScore / questions.length) * 100));
 }
 
 function showResults(score) {
