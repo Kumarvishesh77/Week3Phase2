@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 const profile = result.data;
                 const targetRole = profile.targetRole;
-                const currentRole = profile.roleOrStudy || profile.currentStatus || 'Not specified';
                 const skills = profile.skills || [];
                 const assessments = profile.assessments || [];
 
@@ -36,15 +35,68 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // 3. Run Analysis
-                runAnalysis(targetRole, skills, assessments, currentRole);
-            } else {
+                // 3. Show existing analysis if available
+                if (profile.gapAnalysis) {
+                    const { completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, improvementSummary: summaryText } = profile.gapAnalysis;
+                    renderResults(completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, summaryText);
+                    
+                    // Add a refresh button to re-run AI analysis
+                    const refreshBtn = document.createElement('button');
+                    refreshBtn.className = 'btn';
+                    refreshBtn.style.cssText = 'margin-bottom: 20px; background: var(--secondary-btn); color: white;';
+                    refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh Analysis';
+                    refreshBtn.onclick = () => runAnalysis();
+                    
+                    roleStatusContainer.appendChild(refreshBtn);
 
+                    noDataMsg.style.display = 'none';
+                    analysisResults.style.display = 'block';
+                } else {
+                    // Run Analysis if not already present
+                    runAnalysis();
+                }
+            } else {
                 window.location.href = 'index.html';
             }
         } catch (error) {
             console.error("Analysis Error:", error);
             showEmptyState("Unable to load analysis. Please try again later.", false);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function runAnalysis() {
+        showLoading(true);
+        try {
+            const response = await fetch('/api/ai/generate-gap-analysis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+            if (result.success && result.data) {
+                const { completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, improvementSummary: summaryText } = result.data;
+                renderResults(completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, summaryText);
+                
+                // Add refresh button if it doesn't exist
+                if (!document.querySelector('.fa-sync')) {
+                    const refreshBtn = document.createElement('button');
+                    refreshBtn.className = 'btn';
+                    refreshBtn.style.cssText = 'margin-bottom: 20px; background: var(--secondary-btn); color: white;';
+                    refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh Analysis';
+                    refreshBtn.onclick = () => runAnalysis();
+                    roleStatusContainer.appendChild(refreshBtn);
+                }
+
+                noDataMsg.style.display = 'none';
+                analysisResults.style.display = 'block';
+            } else {
+                showEmptyState(result.message || "Failed to generate analysis. Please try again.", false);
+            }
+        } catch (error) {
+            console.error("Gap Analysis AI Error:", error);
+            showEmptyState("An error occurred during analysis.", false);
         } finally {
             showLoading(false);
         }
@@ -69,34 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         `;
         analysisResults.style.display = 'none';
-    }
-
-    async function runAnalysis(role, userSkills, userAssessments, currentRole) {
-        try {
-            const response = await fetch('/api/ai/generate-gap-analysis', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentRole: currentRole,
-                    targetRole: role,
-                    userSkills: userSkills,
-                    userAssessments: userAssessments
-                })
-            });
-
-            const result = await response.json();
-            if (result.success && result.data) {
-                const { completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, improvementSummary: summaryText } = result.data;
-                renderResults(completedLevel, nextLevelTarget, strengths, skillGaps, keyAreasForImprovement, summaryText);
-                noDataMsg.style.display = 'none';
-                analysisResults.style.display = 'block';
-            } else {
-                showEmptyState("Failed to generate analysis. Please try again.", false);
-            }
-        } catch (error) {
-            console.error("Gap Analysis AI Error:", error);
-            showEmptyState("An error occurred during analysis.", false);
-        }
     }
 
     function renderResults(completed, nextTarget, strengths, gaps, keyAreas, summaryText) {

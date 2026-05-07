@@ -102,7 +102,7 @@ async function initAssessment() {
                     </div>
                     <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
                         <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Time Limit</div>
-                        <div style="font-weight: 600;">20 Mins</div>
+                        <div style="font-weight: 600;">${LEVEL_CONFIG[currentLevel].time / 60} Mins</div>
                     </div>
                     <div style="background: rgba(255,255,255,0.02); padding: 15px; text-align: center;">
                         <div style="font-size: 0.7em; opacity: 0.5; text-transform: uppercase; margin-bottom: 5px;">Max Score</div>
@@ -147,46 +147,45 @@ async function initAssessment() {
             p.innerText = loadingTexts[textIdx % loadingTexts.length];
             textIdx++;
         }
-    }, 3000);
+    }, 1500);
     
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000); // 4-second max-turbo timeout
+
         const response = await fetch('/api/ai/generate-assessment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ skill: currentSkillName, level: currentLevel })
+            body: JSON.stringify({ skill: currentSkillName, level: currentLevel }),
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
         clearInterval(loadingInterval);
 
         if (!response.ok) {
-            const errorData = await response.json();
-            // Propagate the details if available so the catch block can see "Quota"
-            const fullErrorMsg = errorData.details ? `${errorData.message}: ${errorData.details}` : (errorData.message || "Failed to generate assessment");
-            throw new Error(fullErrorMsg);
+            throw new Error("Generation failed or timed out");
         }
 
         const data = await response.json();
         questions = data.questions;
         startAssessmentFlow();
     } catch (error) {
-        console.error("Assessment Generation Error:", error);
+        console.error("Turbo Fallback Triggered:", error.message);
+        clearInterval(loadingInterval);
         
-        // Fallback Logic
-        console.log("Attempting fallback to local quiz data...");
+        // Silent instant fallback (No blocking alerts)
         const resolved = typeof resolveSkill === 'function' ? resolveSkill(currentSkillName) : null;
         if (resolved && typeof domainQuizData !== 'undefined' && domainQuizData[resolved.domain] && domainQuizData[resolved.domain][currentLevel]) {
             questions = domainQuizData[resolved.domain][currentLevel];
             if (questions && questions.length > 0) {
-                console.log("Fallback successful.");
-                alert("AI Engine is currently busy (Quota reached). Loading standard assessment for " + currentSkillName + ".");
                 startAssessmentFlow();
                 return;
             }
         }
 
-        const cleanMsg = error.message.includes("Quota") ? "AI Quota Exceeded. Please try again later or use a different API key." : error.message;
-        alert("Error: " + cleanMsg);
-        location.reload(); // Reset the UI
+        alert("Unable to start assessment. Please try again or check your connection.");
+        location.reload();
     }
 }
 

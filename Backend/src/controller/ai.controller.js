@@ -50,67 +50,36 @@ async function generateAssessment(req, res) {
         const questionCount = 10; // Standardized to 10 questions for all levels
 
         const isBeginner = level.toLowerCase() === 'beginner';
+        const isAdvanced = level.toLowerCase() === 'advanced';
         const prompt = `
-            Task: Generate assessment questions STRICTLY based on the selected skill: "${skill}" and level: "${level}".
+            Task: Generate ${questionCount} assessment questions for skill: "${skill}" at "${level}" level.
             
-            Strict Requirements:
-            1. Questions must ONLY relate to "${skill}" and its technical domain.
-            2. Difficulty: ${level} level. 
-            3. Count: Exactly ${questionCount} unique questions.
-            4. Mix of types: 
-               - Include "mcq" (single choice).
-               - Include "checkbox" (multiple correct choices).
-               ${isBeginner ? '- Do NOT include "written" questions.' : '- Include "written" (short description) questions.'}
+            Requirements:
+            1. Difficulty: ${level} level. 
+            ${isAdvanced ? '2. MANDATORY: At least 50% must be coding-based with code snippets for output prediction or bug fixing.' : ''}
+            3. Types: Mix "mcq", "checkbox", ${isBeginner ? '' : '"written"'}.
             
-            Technical Diversity:
-            - Practical scenarios, Troubleshooting, and Deep-dive specific to "${skill}".
-
             Format: Valid JSON ONLY.
-            Structure: 
-            {
-                "questions": [
-                    {
-                        "id": 1, 
-                        "type": "mcq", 
-                        "question": "...", 
-                        "options": ["A", "B", "C", "D"], 
-                        "answer": "A"
-                    },
-                    {
-                        "id": 2, 
-                        "type": "checkbox", 
-                        "question": "Select all that apply...", 
-                        "options": ["Opt 1", "Opt 2", "Opt 3", "Opt 4"], 
-                        "answer": ["Opt 1", "Opt 3"]
-                    },
-                    ${isBeginner ? '' : '{"id": 3, "type": "written", "question": "...", "answer": "Model answer..."}'}
-                ]
-            }
+            Structure: {"questions": [{"id": 1, "type": "mcq", "question": "...", "options": ["A", "B"], "answer": "A"}]}
         `;
 
-        const modelNames = ["gemini-1.5-flash", "gemini-1.5-pro"];
-        let result;
-        let lastError;
+        const modelName = "gemini-1.5-flash";
+        try {
+            console.log(`[AI] Max-Turbo Request: ${skill} (${level})`);
+            const model = genAIInstance.getGenerativeModel({ 
+                model: modelName,
+                generationConfig: { maxOutputTokens: 800, temperature: 0.5 }
+            });
 
-        for (const modelName of modelNames) {
-            try {
-                console.log(`[AI] Attempting ${skill} assessment with model: ${modelName}`);
-                const model = genAIInstance.getGenerativeModel({ 
-                    model: modelName,
-                    generationConfig: { maxOutputTokens: 4096, temperature: 0.7 }
-                });
+            const aiPromise = model.generateContent(prompt);
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("AI Timeout")), 4000));
 
-                const resultWrapper = await model.generateContent(prompt);
-                result = resultWrapper;
-                if (result) break;
-            } catch (err) {
-                console.warn(`[AI] Model ${modelName} failed for ${skill}: ${err.message}`);
-                lastError = err;
-            }
+            const resultWrapper = await Promise.race([aiPromise, timeoutPromise]);
+            result = resultWrapper;
+        } catch (err) {
+            console.warn(`[AI] Max-Turbo failed: ${err.message}`);
+            throw err;
         }
-
-        if (!result) throw lastError || new Error("All models failed");
-
         const response = await result.response;
         const responseText = response.text().trim();
         const cleanText = responseText.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim();

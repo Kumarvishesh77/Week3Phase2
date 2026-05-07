@@ -53,6 +53,11 @@ const profileSchema = new mongoose.Schema({
         date: { type: Date, default: Date.now }
     }],
 
+    gapAnalysis: {
+        type: Object,
+        default: null
+    },
+
     lastProfileUpdated: { type: Date, default: Date.now }
 }, { timestamps: true, strict: false });
 

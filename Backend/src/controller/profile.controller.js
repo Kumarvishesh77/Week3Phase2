@@ -2,6 +2,7 @@ const Profile = require("../models/profile.model");
 const User = require("../models/user.model");
 const Assessment = require("../models/assessment.model");
 const mongoose = require("mongoose");
+const { generateAndSaveGapAnalysis } = require("../services/ai.service");
 
 const deriveExperienceLevel = (years) => {
     const yrs = parseFloat(years) || 0;
@@ -145,6 +146,7 @@ exports.startAssessment = async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
         
         const newAssessment = new Assessment({ 
+            userId,
             userName: user.fullname || user.username, 
             userEmail: user.email, 
             skill, 
@@ -183,6 +185,7 @@ exports.saveAssessment = async (req, res) => {
         if (!finalAssessment) {
             console.log(`[Assessment Save] Creating new assessment record`);
             finalAssessment = new Assessment({ 
+                userId,
                 userName: user.fullname || user.username, 
                 userEmail: user.email, 
                 skill, 
@@ -201,6 +204,12 @@ exports.saveAssessment = async (req, res) => {
             profile.lastProfileUpdated = Date.now();
             await profile.save();
             console.log(`[Assessment Save] Profile updated successfully`);
+
+            // TRIGGER BACKGROUND GAP ANALYSIS
+            // We don't await this as we want to respond to the user immediately
+            generateAndSaveGapAnalysis(userId).catch(err => {
+                console.error(`[Background Gap Analysis Error] for user ${userId}:`, err.message);
+            });
         } else {
             console.warn(`[Assessment Save] Profile not found for user: ${userId}`);
         }
