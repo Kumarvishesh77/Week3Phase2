@@ -14,6 +14,38 @@ const profileSchema = new mongoose.Schema({
         default: "/profileplaceHolder.jfif"
     },
     
+    // Enterprise Fields from Week3Phase2
+    jobTitle: { type: String, default: "" },
+    department: { type: String, default: "" },
+    organizationName: { type: String, default: "SkillBridge" },
+    dob: { type: Date },
+    nationality: { type: String, default: "" },
+    secondaryEmail: { type: String, default: "" },
+    reportingManager: { type: String, default: "" },
+    employmentType: {
+        type: String,
+        enum: ["Permanent", "Contract", "Intern", "Part-time"],
+        default: "Permanent"
+    },
+    joiningDate: { type: Date },
+    workLocation: { type: String, default: "" },
+    residentialAddress: { type: String, default: "" },
+    officeEmail: { type: String, default: "" },
+    personalEmail: { type: String, default: "" },
+    officePhone: { type: String, default: "" },
+    emergencyContactName: { type: String, default: "" },
+    emergencyContactNumber: { type: String, default: "" },
+    officeAddress: { type: String, default: "" },
+    govtIdType: { type: String, default: "" },
+    idNumber: { type: String, default: "" },
+    nationalId: { type: String, default: "" },
+    workAuthorization: { type: String, default: "" },
+    backgroundVerificationStatus: {
+        type: String,
+        enum: ["Not Started", "In Progress", "Verified", "Rejected"],
+        default: "Not Started"
+    },
+
     // Basic Details (Additional)
     age: { type: Number },
     gender: { type: String },

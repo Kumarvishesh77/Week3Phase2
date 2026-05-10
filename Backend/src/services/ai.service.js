@@ -12,7 +12,7 @@ async function generateAndSaveGapAnalysis(userId) {
         const profile = await Profile.findOne({ userId });
         if (!profile) throw new Error("Profile not found");
 
-        const { targetRole, skills: userSkills, assessments: userAssessments } = profile;
+        const { targetRole, skills: userSkills, assessments: userAssessments, organizationName: company } = profile;
         const currentRole = profile.currentStatus || 'Not specified';
 
         if (!targetRole) {
@@ -27,13 +27,19 @@ async function generateAndSaveGapAnalysis(userId) {
         const passedAssessments = (userAssessments || []).filter(a => a.passed);
         
         const prompt = `
-            You are an expert career counselor. Generate a precise Skill Gap Analysis focusing on PROGRESSION to reach the "${targetRole}".
-            Input Data: User's Background: ${currentRole}, Target Role: ${targetRole}, Passed Assessments: ${JSON.stringify(passedAssessments)}, Profile Skills: ${JSON.stringify(userSkills || [])}
+            You are an expert career counselor at ${company || 'SkillBridge'}. Generate a precise Skill Gap Analysis focusing on PROGRESSION to reach the "${targetRole}".
+            Input Data: 
+            - User's Background: ${currentRole}
+            - Target Role: ${targetRole}
+            - Current Company: ${company || 'General'}
+            - Passed Assessments: ${JSON.stringify(passedAssessments)}
+            - Profile Skills: ${JSON.stringify(userSkills || [])}
 
             Mandatory Logic:
             1. Identify core skills for "${targetRole}" across Beginner, Intermediate, and Advanced levels.
-            2. Compare these against user's passed assessments.
-            3. Classification: "Strength": Level cleared. "Needs Improvement": Lower level cleared, need NEXT level. "Missing Skill": Not yet assessed.
+            2. If company is specified, prioritize skills relevant to that company's focus.
+            3. Compare these against user's passed assessments.
+            4. Classification: "Strength": Level cleared. "Needs Improvement": Lower level cleared, need NEXT level. "Missing Skill": Not yet assessed.
             
             Output Format:
             {

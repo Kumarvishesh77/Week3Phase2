@@ -74,11 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (el.classList.contains('grid-form')) el.style.display = 'grid';
                 else el.style.display = 'block';
             });
-            if (document.getElementById('career-empty-state')) document.getElementById('career-empty-state').style.display = 'none';
             if (document.getElementById('skills-empty-state')) document.getElementById('skills-empty-state').style.display = 'none';
+            if (document.getElementById('education-empty-state')) document.getElementById('education-empty-state').style.display = 'none';
         } else {
             viewElements.forEach(el => {
-                if (el.id !== 'career-empty-state' && el.id !== 'skills-empty-state') el.style.display = 'block';
+                if (el.id !== 'skills-empty-state' && el.id !== 'education-empty-state') el.style.display = 'block';
             });
             editElements.forEach(el => el.style.display = 'none');
             if (currentProfile) renderProfile(currentProfile);
@@ -114,40 +114,167 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const fullName = profile.userName || 'New User';
         document.getElementById('sidebarFullName').textContent = fullName;
-        document.getElementById('sidebarStatus').textContent = profile.currentStatus || 'Status Not Set';
+        document.getElementById('sidebarStatus').textContent = profile.jobTitle || profile.targetRole || 'Role Not Set';
         profileAvatar.src = profile.avatar || '/profileplaceHolder.jfif';
         if (headerAvatar) headerAvatar.src = profile.avatar || '/profileplaceHolder.jfif';
         document.getElementById('headerUserName').textContent = fullName.split(' ')[0];
 
         setTextContent('view-fullname', fullName, 'Enter your full name');
         setTextContent('view-email', profile.userEmail, 'email@example.com');
-        setTextContent('view-age', profile.age, 'Age not provided');
-        setTextContent('view-gender', profile.gender, 'Gender not provided');
         setTextContent('view-mobileNumber', profile.mobileNumber, 'Not provided');
+        setTextContent('view-gender', profile.gender, 'Gender not provided');
+        setTextContent('view-dob', profile.dob ? new Date(profile.dob).toLocaleDateString() : '', 'Date of birth not provided');
+        setTextContent('view-nationality', profile.nationality, 'Nationality not provided');
+        setTextContent('view-secondaryEmail', profile.secondaryEmail, 'Not provided');
+        setTextContent('view-residentialAddress', profile.residentialAddress, 'Address not provided');
         
-        setTextContent('view-currentStatus', profile.currentStatus, 'Provide career status');
+        // Unified Career Status
+        setTextContent('view-currentStatus', profile.currentStatus, 'Beginner');
         setTextContent('view-roleOrStudy', profile.roleOrStudy, 'Provide role or area of study');
+        setTextContent('view-targetRole', profile.jobTitle || profile.targetRole, 'Select your career goal');
+        setTextContent('view-department', profile.department, 'Product & Design');
+        setTextContent('view-reportingManager', profile.reportingManager, 'Manager Name');
+        setTextContent('view-employmentType', profile.employmentType, 'Permanent');
+        setTextContent('view-joiningDate', profile.joiningDate ? new Date(profile.joiningDate).toLocaleDateString() : '', 'mm/dd/yyyy');
+        setTextContent('view-workLocation', profile.workLocation, 'Seattle, WA');
         setTextContent('view-totalExperience', profile.totalExperience, '0');
-        
-        setTextContent('view-targetGoal', profile.targetRole, 'No target role selected');
 
-        if (document.getElementById('career-empty-state')) {
-            const careerEmpty = !profile.currentStatus && !profile.roleOrStudy;
-            document.getElementById('career-empty-state').style.display = (!isEditMode && careerEmpty) ? 'block' : 'none';
-            document.getElementById('careerForm').style.display = (careerEmpty && !isEditMode) ? 'none' : 'grid';
+        // Compliance & Docs (Read-only)
+        setTextContent('view-govtIdType', profile.govtIdType, 'Not verified');
+        setTextContent('view-idNumber', profile.idNumber ? '********' : '', 'Not provided'); // Mask sensitive info
+        setTextContent('view-nationalId', profile.nationalId ? '********' : '', 'Not provided');
+        setTextContent('view-workAuthorization', profile.workAuthorization, 'Not provided');
+        
+        const bgStatus = document.getElementById('view-bgVerificationStatus');
+        if (bgStatus) {
+            bgStatus.textContent = profile.backgroundVerificationStatus || 'Not Started';
+            bgStatus.className = `badge ${profile.backgroundVerificationStatus === 'Verified' ? 'verified' : ''}`;
         }
+
+        // System Information
+        const user = profile.userId || {};
+        const sysUserId = document.getElementById('sysUserId');
+        const sysCreatedDate = document.getElementById('sysCreatedDate');
+        const sysUpdatedDate = document.getElementById('sysUpdatedDate');
+        const sysUserRole = document.getElementById('sysUserRole');
+
+        if (sysUserId) sysUserId.textContent = user.fullname || user.username || '--';
+        if (sysCreatedDate) sysCreatedDate.textContent = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '--';
+        if (sysUpdatedDate) sysUpdatedDate.textContent = profile.lastProfileUpdated ? new Date(profile.lastProfileUpdated).toLocaleDateString() : '--';
+        if (sysUserRole) sysUserRole.textContent = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Standard User';
 
         if (document.getElementById('skills-empty-state')) {
             const skillsEmpty = !profile.skills || profile.skills.length === 0;
             document.getElementById('skills-empty-state').style.display = (!isEditMode && skillsEmpty) ? 'block' : 'none';
         }
 
-        populateForm('basicInfoForm', { fullname: fullName, email: profile.userEmail, age: profile.age, gender: profile.gender, mobileNumber: profile.mobileNumber });
-        populateForm('careerForm', profile);
-        populateForm('goalsForm', { targetGoal: profile.targetRole });
+        // Format Dates for Input (YYYY-MM-DD)
+        const formattedDob = profile.dob ? new Date(profile.dob).toISOString().split('T')[0] : '';
+        const formattedJoiningDate = profile.joiningDate ? new Date(profile.joiningDate).toISOString().split('T')[0] : '';
+        
+        populateForm('basicInfoForm', { 
+            fullname: fullName, 
+            email: profile.userEmail, 
+            mobileNumber: profile.mobileNumber,
+            gender: profile.gender,
+            dob: formattedDob,
+            nationality: profile.nationality,
+            secondaryEmail: profile.secondaryEmail,
+            residentialAddress: profile.residentialAddress
+        });
+        
+        populateForm('careerForm', {
+            currentStatus: profile.currentStatus,
+            roleOrStudy: profile.roleOrStudy,
+            targetRole: profile.jobTitle || profile.targetRole,
+            department: profile.department,
+            reportingManager: profile.reportingManager,
+            employmentType: profile.employmentType,
+            joiningDate: formattedJoiningDate,
+            workLocation: profile.workLocation,
+            totalExperience: profile.totalExperience
+        });
 
         renderSkills(profile.skills);
+        renderEducation(profile.education);
         updateCompletionStatus(profile);
+    };
+
+    const renderEducation = (education = []) => {
+        const list = document.getElementById('education-list');
+        const editList = document.getElementById('education-edit-list');
+        const emptyState = document.getElementById('education-empty-state');
+        
+        if (!list || !editList) return;
+
+        list.innerHTML = '';
+        editList.innerHTML = '';
+        
+        if (education.length === 0) {
+            if (!isEditMode) emptyState.style.display = 'block';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+
+        education.forEach((edu, index) => {
+            // View item
+            const viewItem = document.createElement('div');
+            viewItem.className = 'cta-box mt-2';
+            viewItem.style.textAlign = 'left';
+            viewItem.innerHTML = `
+                <h4 style="color:var(--primary-color)">${edu.degree}</h4>
+                <p><strong>${edu.institution}</strong> | ${edu.university}</p>
+                <p class="text-secondary">${edu.graduationYear} • Grade: ${edu.grade}</p>
+            `;
+            list.appendChild(viewItem);
+
+            // Edit item
+            const editItem = document.createElement('div');
+            editItem.className = 'skill-entry-row mt-2';
+            editItem.style.display = 'flex';
+            editItem.style.justifyContent = 'space-between';
+            editItem.style.alignItems = 'center';
+            editItem.innerHTML = `
+                <div>
+                    <strong>${edu.degree}</strong> at ${edu.institution} (${edu.graduationYear})
+                </div>
+                <button type="button" class="btn btn-danger-link" onclick="removeEducation(${index})">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
+            `;
+            editList.appendChild(editItem);
+        });
+    };
+
+    const addEducationBtn = document.getElementById('addEducationBtn');
+    if (addEducationBtn) {
+        addEducationBtn.addEventListener('click', () => {
+            const form = document.getElementById('newEducationForm');
+            const formData = new FormData(form);
+            const degree = formData.get('degree');
+            const institution = formData.get('institution');
+            
+            if (degree && institution) {
+                const newEdu = {
+                    degree,
+                    institution,
+                    university: formData.get('university'),
+                    graduationYear: parseInt(formData.get('graduationYear')),
+                    grade: formData.get('grade')
+                };
+                
+                if (!currentProfile.education) currentProfile.education = [];
+                currentProfile.education.push(newEdu);
+                renderEducation(currentProfile.education);
+                form.reset();
+            } else showToast('Degree and Institution are required', 'warning');
+        });
+    }
+
+    window.removeEducation = (index) => {
+        currentProfile.education.splice(index, 1);
+        renderEducation(currentProfile.education);
     };
 
     const setTextContent = (id, value, placeholder) => {
@@ -206,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fullName && fullName.trim() !== "") percentage += 30;
         else missingSteps.push('Set your Full Name');
 
-        if (profile.currentStatus && profile.roleOrStudy && profile.roleOrStudy.trim() !== "") percentage += 30;
+        if (profile.currentStatus && (profile.jobTitle || profile.targetRole)) percentage += 30;
         else missingSteps.push('Complete Career Status');
 
         if (profile.skills && profile.skills.length > 0) percentage += 40;
@@ -218,21 +345,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isComplete = percentage === 100;
         badge.textContent = isComplete ? 'Complete' : 'Incomplete';
         badge.className = `badge ${isComplete ? 'verified' : ''}`;
-        if (!isComplete) {
-            badge.style.backgroundColor = '#fed9cc';
-            badge.style.color = '#ef4444';
-        } else {
-            badge.style.backgroundColor = ''; badge.style.color = '';
-        }
         
         hint.textContent = isComplete ? 'Great! Your profile is complete.' : 'Complete your profile to unlock full features.';
         hint.style.color = isComplete ? '#10b981' : '';
         
-        const careerComplete = profile.currentStatus && profile.roleOrStudy && profile.roleOrStudy.trim() !== "";
+        const careerComplete = profile.currentStatus && (profile.jobTitle || profile.targetRole);
         if (fullName && careerComplete) navAssessment.classList.remove('disabled-nav');
         else navAssessment.classList.add('disabled-nav');
 
-        if (profile.skills && profile.skills.length > 0) navGapAnalysis.classList.remove('disabled-nav');
+        const hasCareerData = (profile.skills && profile.skills.length > 0) || (profile.assessments && profile.assessments.length > 0);
+        if (hasCareerData) navGapAnalysis.classList.remove('disabled-nav');
         else navGapAnalysis.classList.add('disabled-nav');
 
         missingSteps.forEach(step => {
@@ -245,8 +367,14 @@ document.addEventListener('DOMContentLoaded', () => {
     saveChangesBtn.addEventListener('click', async () => {
         const basicData = getFormData('basicInfoForm');
         const careerData = getFormData('careerForm');
-        const goalsData = getFormData('goalsForm');
-        const combinedUpdates = { ...basicData, ...careerData, ...goalsData, skills: currentProfile.skills };
+        
+        const combinedUpdates = { 
+            ...basicData, 
+            ...careerData, 
+            jobTitle: careerData.targetRole, 
+            skills: currentProfile.skills,
+            education: currentProfile.education || []
+        };
 
         try {
             const response = await fetch('/api/profile/update', {

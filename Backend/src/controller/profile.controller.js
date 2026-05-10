@@ -62,7 +62,14 @@ exports.updateProfile = async (req, res) => {
         const allowedFields = [
             "userName", "userEmail", "avatar", "age", "gender", 
             "currentStatus", "roleOrStudy", "totalExperience", 
-            "skills", "targetRole", "mobileNumber"
+            "skills", "targetRole", "mobileNumber",
+            "jobTitle", "department", "organizationName", "nationality", "dob",
+            "secondaryEmail", "reportingManager", "employmentType", "workLocation", "joiningDate",
+            "certifications", "resumeUrl", "officeEmail", "personalEmail",
+            "officePhone", "emergencyContactName", "emergencyContactNumber",
+            "residentialAddress", "officeAddress", "govtIdType", "idNumber",
+            "nationalId", "workAuthorization", "backgroundVerificationStatus",
+            "education"
         ];
 
         const updates = {};
@@ -88,24 +95,11 @@ exports.updateProfile = async (req, res) => {
 
         updates.lastProfileUpdated = new Date();
 
-        // 2. COMPREHENSIVE UNSET: Remove every single extra field we identified
-        const extraFieldsToRemove = {
-            jobTitle: "", department: "", organizationName: "", nationality: "",
-            secondaryEmail: "", reportingManager: "", employmentType: "", workLocation: "",
-            certifications: "", resumeUrl: "", officeEmail: "", personalEmail: "",
-            officePhone: "", emergencyContactName: "", emergencyContactNumber: "",
-            residentialAddress: "", officeAddress: "", govtIdType: "", idNumber: "",
-            nationalId: "", workAuthorization: "", backgroundVerificationStatus: "",
-            language: "", timeZone: "", notificationPreferences: "", theme: "",
-            communicationPreferences: "", education: "", careerGoal: ""
-        };
-
         const nativeCollection = mongoose.connection.db.collection('profiles');
         await nativeCollection.updateOne(
             { userId: new mongoose.Types.ObjectId(userId) },
             { 
-                $set: updates,
-                $unset: extraFieldsToRemove 
+                $set: updates
             },
             { upsert: true }
         );

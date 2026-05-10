@@ -375,24 +375,23 @@ header{
 
 .wrapper .icon-close{
     position: absolute;
-    top: 25px; /* Increased from 20px */
-    right: 25px; /* Increased from 20px */
-    width: 30px;
-    height: 30px;
-    font-size: 2em;
-    color: var(--input-text);
+    top: 15px;
+    right: 15px;
+    width: 25px;
+    height: 25px;
+    font-size: 1.2em; /* Reduced from 2em */
+    color: var(--para-color); /* Muted color */
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     z-index: 1;
-    transition: transform 0.3s ease, opacity 0.3s;
-    opacity: 0.8;
+    transition: opacity 0.3s;
+    opacity: 0.4; /* Reduced from 0.8 */
 }
 
 .wrapper .icon-close:hover {
-    transform: scale(1.1);
-    opacity: 1;
+    opacity: 0.7; /* Subtler hover effect */
 }
 
 .form-box h2{
@@ -881,4 +880,139 @@ footer {
     .cta-buttons-modal {
         flex-direction: column;
     }
+}
+
+/* Polite Enterprise Policy Statement */
+.enterprise-policy {
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.2); /* Soft blue border */
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.05); /* Very faint blue tint */
+    text-align: center;
+}
+
+.enterprise-policy p {
+    font-size: 0.82em;
+    color: #3b82f6; /* Polite professional blue */
+    line-height: 1.5;
+    font-weight: 500;
+    margin: 0;
+}
+
+.enterprise-footer {
+    font-size: 0.8em;
+    color: var(--para-color);
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--glass-border);
+    font-style: italic;
+}
+
+/* Compact Enrollment Form Styles */
+.compact-form {
+    padding: 15px 35px !important;
+}
+
+.compact-form h2 {
+    font-size: 1.4em !important;
+    margin-bottom: 2px !important;
+}
+
+.compact-form .input-box {
+    height: 35px !important;
+    margin: 12px 0 !important;
+}
+
+.compact-form .input-box label {
+    font-size: 0.85em !important;
+}
+
+.compact-form .input-box input:focus~label,
+.compact-form .input-box input:not(:placeholder-shown)~label {
+    top: -6px !important;
+    font-size: 0.7em !important;
+}
+
+.compact-form .input-box .icon {
+    font-size: 16px !important;
+}
+
+.compact-form .remember-forgot {
+    margin: 8px 0 !important;
+    font-size: 0.75em !important;
+}
+
+.compact-form .btn {
+    height: 38px !important;
+    font-size: 0.9em !important;
+    margin-top: 5px !important;
+}
+
+.compact-form .login-register {
+    margin: 8px 0 0 !important;
+    font-size: 0.75em !important;
+}
+
+/* Ensure the wrapper can accommodate the shorter registration form */
+.wrapper.active {
+    height: 520px !important; /* Adjusted for compact single column */
+}
+
+@media (max-width: 480px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+    .wrapper.active {
+        height: 700px !important;
+    }
+}
+
+/* Single-Line Enterprise Notice for Enrollment */
+.enterprise-policy-line {
+    font-size: 0.8em;
+    color: #3b82f6;
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+/* Interactive Password Helper Text */
+.input-box {
+    position: relative;
+    /* Ensure there is enough space for the helper text without affecting neighbors */
+    margin-bottom: 25px !important; 
+}
+
+.input-helper {
+    position: absolute;
+    bottom: -18px;
+    left: 5px;
+    font-size: 0.65em;
+    color: var(--para-color);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+/* Hide helper text only when input has value (even when focused) */
+.input-box input:not(:placeholder-shown) ~ .input-helper {
+    opacity: 0;
+    transform: translateY(-5px);
+}
+
+/* Ensure label floats without overlap */
+.input-box input:focus ~ label,
+.input-box input:not(:placeholder-shown) ~ label {
+    top: -8px !important;
+    font-size: 0.75em !important;
+    background: transparent; 
+}
+
+/* Adjust wrapper height for the helper text space */
+.wrapper.active {
+    height: 560px !important; 
 }

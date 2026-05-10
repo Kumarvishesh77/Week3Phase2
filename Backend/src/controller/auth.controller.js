@@ -13,7 +13,7 @@ const isStrongPassword = (password) => {
 async function registerUser(req, res) {
     try {
         console.log("Registration Request Body:", req.body);
-        const { fullname, email, password, age, gender, role = "user" } = req.body;
+        const { fullname, email, password, age, gender, company, role = "user" } = req.body;
 
         if (!fullname || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
@@ -44,18 +44,20 @@ async function registerUser(req, res) {
             password: hashedPassword,
             age,
             gender,
+            company,
             role
         });
 
         await user.save();
 
-        // Auto-create Profile with registration data including Age and Gender
+        // Auto-create Profile with registration data
         await profileModel.create({
             userId: user._id,
             userName: user.fullname,
             userEmail: user.email,
             age: user.age,
             gender: user.gender,
+            organizationName: user.company || "SkillBridge",
             avatar: "/profileplaceHolder.jfif",
             profileStatus: "Incomplete",
             completionPercentage: 30 
@@ -75,6 +77,8 @@ async function registerUser(req, res) {
                 username: user.username,
                 fullname: user.fullname,
                 email: user.email,
+                gender: user.gender,
+                company: user.company,
                 role: user.role
             }
         });
@@ -117,6 +121,8 @@ async function loginUser(req, res) {
                 username: user.username,
                 fullname: user.fullname,
                 email: user.email,
+                gender: user.gender,
+                company: user.company,
                 role: user.role
             }
         });

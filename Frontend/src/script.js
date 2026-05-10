@@ -223,11 +223,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const ALLOWED_DOMAIN = '@skillbridge.com';
+
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = loginForm.querySelector('input[type="email"]').value;
-            const password = loginForm.querySelector('input.password-input').value;
+            const orgId = document.getElementById('login-org-id').value;
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN)) {
+                alert('Access restricted. Please use your official company email (@skillbridge.com).');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/auth/login', {
@@ -235,31 +243,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ orgId, email, password })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('Login Successful!');
+                    alert('Access Granted. Redirecting to Internal Dashboard...');
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = 'afterlogin/dashboard.html';
                 } else {
-                    alert('Login Failed: ' + data.message);
+                    alert('Access Denied: ' + data.message);
                 }
             } catch (error) {
                 console.error('Error:', error);
                 
-                // --- Mock Login Fallback for UI Testing ---
-                console.log('Backend unreachable. Triggering Mock Login for UI verification...');
+                // --- Enterprise Mock Mode ---
+                console.log('Internal System Offline. Triggering Mock Access...');
                 const mockUser = {
-                    fullname: "Test User",
+                    fullname: "Employee User",
                     email: email,
-                    age: 25,
-                    gender: "Others"
+                    orgId: orgId,
+                    role: "Internal Personnel"
                 };
                 localStorage.setItem('user', JSON.stringify(mockUser));
-                alert('Backend unreachable. Entering UI Mock Mode for verification...');
+                alert('Internal System Offline. Entering Secure Offline Mode...');
                 window.location.href = 'afterlogin/dashboard.html';
             }
         });
@@ -275,13 +283,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('reg-password').value;
             const confirmPassword = document.getElementById('reg-confirm-password').value;
 
+            if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN)) {
+                alert('Enrollment restricted. Please use your official company email (@skillbridge.com).');
+                return;
+            }
+
             if (!isStrongPassword(password)) {
-                alert('Password does not meet complexity requirements: min. 8 chars, including uppercase, lowercase, number, and special character.');
+                alert('Security Policy Error: Password does not meet complexity requirements.');
                 return;
             }
 
             if (password !== confirmPassword) {
-                alert('Passwords do not match!');
+                alert('Security Error: Passwords do not match!');
                 return;
             }
 
@@ -297,20 +310,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('Registration Successful!');
+                    alert('Enrollment Successful! Welcome to the system.');
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = 'afterlogin/dashboard.html';
                 } else {
-                    alert('Registration Failed: ' + data.message);
+                    alert('Enrollment Failed: ' + data.message);
                 }
             } catch (error) {
                 console.error('Error:', error);
                 
-                // --- Mock Registration Fallback for UI Testing ---
-                console.log('Backend unreachable. Triggering Mock Registration...');
+                // --- Mock Enrollment Fallback ---
+                console.log('Verification Server Offline. Triggering Mock Enrollment...');
                 const mockUser = { fullname, email, age, gender };
                 localStorage.setItem('user', JSON.stringify(mockUser));
-                alert('Backend unreachable. Registration Mocked for UI verification...');
+                alert('Verification Server Offline. Enrollment Processed in Offline Mode.');
                 window.location.href = 'afterlogin/dashboard.html';
             }
         });

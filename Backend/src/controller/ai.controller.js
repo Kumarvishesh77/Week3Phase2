@@ -47,39 +47,25 @@ async function generateAssessment(req, res) {
         }
 
         const genAIInstance = new GoogleGenerativeAI(apiKey);
-        const questionCount = 10; // Standardized to 10 questions for all levels
+        const questionCount = 10;
 
-        const isBeginner = level.toLowerCase() === 'beginner';
-        const isAdvanced = level.toLowerCase() === 'advanced';
         const prompt = `
             Task: Generate ${questionCount} assessment questions for skill: "${skill}" at "${level}" level.
-            
             Requirements:
-            1. Difficulty: ${level} level. 
-            ${isAdvanced ? '2. MANDATORY: At least 50% must be coding-based with code snippets for output prediction or bug fixing.' : ''}
-            3. Types: Mix "mcq", "checkbox", ${isBeginner ? '' : '"written"'}.
+            1. Difficulty: ${level} strictly.
+            2. Format: Standard MCQs with 4 options.
             
             Format: Valid JSON ONLY.
-            Structure: {"questions": [{"id": 1, "type": "mcq", "question": "...", "options": ["A", "B"], "answer": "A"}]}
+            Structure: {"questions": [{"id": 1, "type": "mcq", "question": "...", "options": ["A", "B", "C", "D"], "answer": "A"}]}
         `;
 
         const modelName = "gemini-1.5-flash";
-        try {
-            console.log(`[AI] Max-Turbo Request: ${skill} (${level})`);
-            const model = genAIInstance.getGenerativeModel({ 
-                model: modelName,
-                generationConfig: { maxOutputTokens: 800, temperature: 0.5 }
-            });
+        const model = genAIInstance.getGenerativeModel({ 
+            model: modelName,
+            generationConfig: { maxOutputTokens: 1000, temperature: 0.5 }
+        });
 
-            const aiPromise = model.generateContent(prompt);
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("AI Timeout")), 4000));
-
-            const resultWrapper = await Promise.race([aiPromise, timeoutPromise]);
-            result = resultWrapper;
-        } catch (err) {
-            console.warn(`[AI] Max-Turbo failed: ${err.message}`);
-            throw err;
-        }
+        const result = await model.generateContent(prompt);
         const response = await result.response;
         const responseText = response.text().trim();
         const cleanText = responseText.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim();
@@ -98,14 +84,14 @@ async function generateAssessment(req, res) {
 }
 
 async function generateGapAnalysis(req, res) {
-    const { currentRole, targetRole, userSkills, userAssessments } = req.body;
+    const { currentRole, targetRole, userSkills, userAssessments, company } = req.body;
 
     if (!targetRole) {
         return res.status(400).json({ success: false, message: "Target role is required." });
     }
 
     try {
-        console.log(`[AI Gap Analysis] Request: TargetRole=${targetRole}`);
+        console.log(`[AI Gap Analysis] Request: TargetRole=${targetRole}, Company=${company || 'None'}`);
         const apiKey = process.env.GOOGLE_GENAI_API_KEY;
         if (!apiKey || apiKey === "dummy_key") throw new Error("Missing API Key");
 
@@ -113,13 +99,19 @@ async function generateGapAnalysis(req, res) {
         const passedAssessments = (userAssessments || []).filter(a => a.passed);
         
         const prompt = `
-            You are an expert career counselor. Generate a precise Skill Gap Analysis focusing on PROGRESSION to reach the "${targetRole}".
-            Input Data: User's Background: ${currentRole || 'Not specified'}, Target Role: ${targetRole}, Passed Assessments: ${JSON.stringify(passedAssessments)}, Profile Skills: ${JSON.stringify(userSkills || [])}
+            You are an expert career counselor at ${company || 'SkillBridge'}. Generate a precise Skill Gap Analysis focusing on PROGRESSION to reach the "${targetRole}".
+            Input Data: 
+            - User's Background: ${currentRole || 'Not specified'}
+            - Target Role: ${targetRole}
+            - Current Company: ${company || 'General'}
+            - Passed Assessments: ${JSON.stringify(passedAssessments)}
+            - Profile Skills: ${JSON.stringify(userSkills || [])}
 
             Mandatory Logic:
             1. Identify core skills for "${targetRole}" across Beginner, Intermediate, and Advanced levels.
-            2. Compare these against user's passed assessments.
-            3. Classification: "Strength": Level cleared. "Needs Improvement": Lower level cleared, need NEXT level. "Missing Skill": Not yet assessed.
+            2. If company is specified, prioritize skills relevant to that company's focus (e.g., TCS focuses on Java/SQL, Infosys on React/JS).
+            3. Compare these against user's passed assessments.
+            4. Classification: "Strength": Level cleared. "Needs Improvement": Lower level cleared, need NEXT level. "Missing Skill": Not yet assessed.
             
             Output Format:
             {
@@ -133,7 +125,7 @@ async function generateGapAnalysis(req, res) {
             Output strictly valid JSON.
         `;
 
-        const modelNames = ["gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
+        const modelNames = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
         let result;
         let lastError;
 
@@ -158,18 +150,37 @@ async function generateGapAnalysis(req, res) {
         return res.status(200).json({ success: true, data: analysisData });
     } catch (error) {
         console.error("[AI Gap Analysis Error]:", error.message);
-        return handleGapAnalysisFallback(targetRole, userSkills, userAssessments, res);
+        return handleGapAnalysisFallback(targetRole, userSkills, userAssessments, company, res);
     }
 }
 
-function handleGapAnalysisFallback(targetRole, userSkills, userAssessments, res) {
+function handleGapAnalysisFallback(targetRole, userSkills, userAssessments, company, res) {
     const roleReqs = {
-        "Frontend Developer": { "HTML": "Advanced", "CSS": "Advanced", "JavaScript": "Intermediate", "React": "Intermediate", "Git": "Beginner" },
-        "Backend Developer": { "Python": "Advanced", "Node.js": "Intermediate", "SQL": "Intermediate", "Git": "Intermediate", "REST API": "Advanced" },
-        "QA Engineer": { "Manual Testing": "Advanced", "Selenium": "Intermediate", "JavaScript": "Beginner", "SQL": "Beginner" }
+        "Frontend Developer": { "HTML": "Advanced", "CSS": "Advanced", "JavaScript": "Intermediate", "React": "Intermediate" },
+        "Backend Developer": { "Python": "Advanced", "Node.js": "Intermediate", "SQL": "Advanced" },
+        "Full Stack Developer": { "HTML": "Advanced", "JavaScript": "Advanced", "Node.js": "Intermediate", "CSS": "Intermediate" },
+        "Java Developer": { "Java": "Advanced", "Spring Boot": "Intermediate", "SQL": "Intermediate" },
+        "Data Analyst": { "SQL": "Advanced", "Excel": "Advanced", "Python": "Intermediate", "Power BI": "Intermediate" },
+        "Data Scientist": { "Python": "Advanced", "Machine Learning": "Intermediate", "Statistics": "Advanced", "SQL": "Intermediate" },
+        "Business Analyst": { "Requirement Analysis": "Advanced", "SQL": "Intermediate", "Excel": "Advanced", "Communication": "Advanced" },
+        "Machine Learning Engineer": { "Python": "Advanced", "Machine Learning": "Advanced", "Statistics": "Intermediate", "PyTorch": "Intermediate" },
+        "Network Engineer": { "Networking": "Advanced", "Security": "Intermediate", "Routing": "Advanced" },
+        "Cloud Engineer": { "Cloud Computing": "Advanced", "Networking": "Intermediate", "Docker": "Intermediate", "Kubernetes": "Intermediate" },
+        "Microsoft 365 Admin": { "Microsoft 365": "Advanced", "Networking": "Intermediate", "Security": "Intermediate" },
+        "Intune Specialist": { "Intune": "Advanced", "Security": "Advanced", "Networking": "Intermediate" }
     };
     
+    // Company Priorities
+    const companyPriorities = {
+        "TCS": ["Java", "Spring Boot", "SQL"],
+        "Infosys": ["JavaScript", "React", "Angular"],
+        "Wipro": ["Networking", "Security", "Cloud Computing"],
+        "Accenture": ["System Design", "Microservices", "Cloud Architecture"]
+    };
+
     let requirements = roleReqs[targetRole] || { "Technical Communication": "Intermediate", "Problem Solving": "Advanced" };
+    const prioritizedSkills = companyPriorities[company] || [];
+
     const levels = ["None", "Beginner", "Intermediate", "Advanced"];
     const strengths = [];
     const skillGaps = [];
@@ -180,19 +191,35 @@ function handleGapAnalysisFallback(targetRole, userSkills, userAssessments, res)
 
     for (const [reqSkill, reqLevel] of Object.entries(requirements)) {
         const userLevel = userSkillsMap[reqSkill.toLowerCase()] || "None";
-        if (levels.indexOf(userLevel) >= levels.indexOf(reqLevel)) strengths.push({ name: reqSkill, level: userLevel, target: reqLevel });
-        else skillGaps.push({ name: reqSkill, level: userLevel, target: reqLevel, type: userLevel === "None" ? "Missing Skill" : "Needs Improvement" });
+        const isPriority = prioritizedSkills.includes(reqSkill);
+        const effectiveReqLevel = isPriority ? "Advanced" : reqLevel;
+
+        if (levels.indexOf(userLevel) >= levels.indexOf(effectiveReqLevel)) {
+            strengths.push({ name: reqSkill, level: userLevel, target: effectiveReqLevel });
+        } else {
+            skillGaps.push({ 
+                name: reqSkill, 
+                level: userLevel, 
+                target: effectiveReqLevel, 
+                type: userLevel === "None" ? "Missing Skill" : "Needs Improvement",
+                priority: isPriority ? "High (Company Priority)" : "Normal"
+            });
+        }
     }
 
     return res.status(200).json({
         success: true,
         data: { 
-            completedLevel: "Assessment Phase Active",
-            nextLevelTarget: `Path to ${targetRole} Mastery`,
+            completedLevel: strengths.length > 0 ? "Initial Core Validated" : "Assessment Phase Active",
+            nextLevelTarget: `Achieve ${targetRole} Proficiency ${company ? `at ${company}` : ''}`,
             strengths, 
             skillGaps, 
-            keyAreasForImprovement: [`Master the core competencies required for ${targetRole}.`, "Complete technical assessments.", "Bridge theoretical knowledge gaps."],
-            improvementSummary: `To reach the ${targetRole} level, leverage your strengths while closing identified gaps.`, 
+            keyAreasForImprovement: [
+                `Master the core technical requirements for ${targetRole}.`,
+                ...prioritizedSkills.map(s => `Focus on ${s} to align with ${company} standards.`),
+                "Complete verified technical assessments to validate your proficiency levels."
+            ],
+            improvementSummary: `To successfully transition to a ${targetRole} role${company ? ` within ${company}` : ''}, you should prioritize closing the identified gaps in ${skillGaps.slice(0,2).map(g => g.name).join(' and ')}. Your existing knowledge in ${strengths.slice(0,2).map(s => s.name).join(' and ')} provides a strong foundation.`, 
             isFallback: true 
         }
     });
