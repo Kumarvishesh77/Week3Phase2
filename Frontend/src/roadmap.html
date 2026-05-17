@@ -8,37 +8,448 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        .roadmap-container {
+            max-width: 1100px;
+            margin: 120px auto 40px auto;
+            padding: 0 20px;
+        }
+
         .roadmap-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 40px;
             backdrop-filter: blur(12px);
-            max-width: 900px;
-            margin: 120px auto 40px auto;
             box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
-        .skill-section {
-            margin-bottom: 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 20px;
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
         }
-        .week-block {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
+
+        .header-text h1 {
+            font-size: 2.4rem;
+            color: var(--heading-color);
+            margin-bottom: 8px;
+        }
+
+        .header-text p {
+            color: var(--para-color);
+            font-size: 1.1rem;
+            max-width: 700px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary-btn);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Progress Section */
+        .progress-overview {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 50px;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: var(--heading-color);
+            font-size: 1.1rem;
+        }
+
+        .outer-bar {
+            height: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .inner-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            width: 0%;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            position: relative;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
             border-radius: 12px;
-            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .practice-box {
-            border-left: 4px solid var(--accent);
-            padding: 10px 20px;
-            background: rgba(37, 99, 235, 0.1);
-            font-style: italic;
+
+        .stat-item h4 {
+            font-size: 2.2rem;
+            color: var(--primary-btn);
+            margin-bottom: 4px;
+            font-weight: 800;
         }
-        .roadmap-header {
+
+        .stat-item p {
+            font-size: 0.75rem;
+            color: var(--para-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        /* Roadmap Timeline */
+        .roadmap-timeline {
+            position: relative;
+            padding-left: 60px;
+            margin-top: 20px;
+        }
+
+        .roadmap-timeline::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 10px;
+            bottom: 30px;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary-btn) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 2px;
+        }
+
+        .level-group {
+            margin-bottom: 70px;
+            position: relative;
+        }
+
+        .level-header {
+            position: absolute;
+            left: -60px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .level-marker {
+            width: 60px;
+            height: 60px;
+            background: var(--input-bg);
+            border: 4px solid #64748b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            color: #64748b;
+            font-weight: 800;
+            font-size: 1.3rem;
+            transition: all 0.4s;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            pointer-events: auto;
+        }
+
+        .level-group.active .level-marker {
+            border-color: var(--primary-btn);
+            color: var(--primary-btn);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+            transform: scale(1.1);
+        }
+
+        .level-group.completed .level-marker {
+            border-color: #10b981;
+            background: #10b981;
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .level-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--heading-color);
+            margin-left: 85px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+
+        .skills-list {
+            margin-top: 65px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 25px;
+        }
+
+        .skill-node {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .skill-node:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .skill-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .skill-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--text-main);
+            transition: all 0.3s;
+        }
+
+        .skill-node:hover .skill-icon {
+            color: var(--primary-btn);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .skill-details h3 {
+            font-size: 1.25rem;
+            color: var(--heading-color);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .skill-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--para-color);
+        }
+
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .status-locked { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.2); }
+        .status-pending { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-progress { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-completed { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .btn-action {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-start { background: var(--primary-btn); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); filter: brightness(1.1); }
+        .btn-locked { background: rgba(255,255,255,0.05); color: #64748b; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* Recommendations Section */
+        .recommendations {
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 99, 235, 0.08));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+        }
+
+        .recommendations h3 {
+            color: var(--primary-btn);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 15px;
+            color: var(--para-color);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .recommendations li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--primary-btn);
+            font-size: 1.2rem;
+        }
+
+        /* Footer Actions */
+        .footer-actions {
+            margin-top: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .main-cta {
+            background: var(--primary-btn);
+            color: white;
+            padding: 18px 50px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .main-cta:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.5);
+        }
+
+        .secondary-cta {
+            background: transparent;
+            color: var(--primary-btn);
+            border: 2px solid var(--primary-btn);
+            padding: 18px 50px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.4s;
+        }
+
+        .secondary-cta:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 7px solid rgba(255,255,255,0.1);
+            border-top: 7px solid var(--primary-btn);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media print {
+            header, .footer-actions, .btn-action, .action-btns {
+                display: none !important;
+            }
+            .roadmap-container {
+                margin: 0;
+                max-width: 100%;
+            }
+            .roadmap-card {
+                box-shadow: none;
+                border: none;
+                background: white;
+            }
+            body {
+                background: white;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .skills-list {
+                grid-template-columns: 1fr;
+            }
+            .progress-overview {
+                grid-template-columns: 1fr;
+            }
+            .header-section {
+                flex-direction: column;
+                gap: 25px;
+            }
+            .level-title {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
@@ -50,6 +461,7 @@
             <a href="profile.html">Profile</a>
             <a href="assessment.html">Assessments</a>
             <a href="gap-analysis.html">Gap Analysis</a>
+            <a href="roadmap.html" class="active">Roadmap</a>
             <button id="darkModeToggle" class="theme-btn" style="background:none; border:none; color:inherit; cursor:pointer;">
                 <i class="fas fa-moon"></i>
             </button>
@@ -57,105 +469,75 @@
         </nav>
     </header>
 
+    <div class="roadmap-container">
+        <div class="roadmap-card">
+            <div class="header-section">
+                <div class="header-text">
+                    <h1>Your Learning <span>Roadmap</span></h1>
+                    <p id="roadmap-subtitle">A personalized plan to close your skill gaps and achieve your target role.</p>
+                </div>
+                <div class="action-btns">
+                    <button class="btn-icon" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-icon" onclick="window.print()">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </button>
+                </div>
+            </div>
 
-    <div class="roadmap-card">
-        <div class="roadmap-header">
-            <h1>Your Learning <span>Roadmap</span></h1>
-            <button onclick="window.print()" class="btn" style="padding: 8px 15px; font-size: 0.8em;"><i class="fas fa-print"></i> Print</button>
-        </div>
-        <p id="roadmap-subtitle">Customized growth plan for your goals.</p>
-        
-        <div id="roadmap-content" style="margin-top: 30px;">
-            <!-- Roadmap content injected here -->
-        </div>
+            <div class="progress-overview">
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>Overall Readiness Progress</span>
+                        <span id="readiness-percent">0%</span>
+                    </div>
+                    <div class="outer-bar">
+                        <div class="inner-bar" id="progress-bar"></div>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h4 id="total-skills">0</h4>
+                        <p>Total Tasks</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="completed-skills">0</h4>
+                        <p>Completed</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="remaining-skills">0</h4>
+                        <p>Remaining</p>
+                    </div>
+                </div>
+            </div>
 
-        <div id="no-roadmap-msg" style="display: none; text-align: center; padding: 40px;">
-            <p>Please complete a <strong>Gap Analysis</strong> first to identify which skills you need to improve.</p>
-            <button onclick="location.href='gap-analysis.html'" class="btn">Go to Gap Analysis</button>
+            <div id="roadmap-content" class="roadmap-timeline">
+                <!-- Milestone Groups dynamically injected here -->
+            </div>
+
+            <div class="recommendations" id="recommendations-box" style="display: none;">
+                <h3><i class="fas fa-lightbulb"></i> Suggested Focus Areas</h3>
+                <ul id="recommendations-list">
+                    <!-- Recommendations injected here -->
+                </ul>
+            </div>
+
+            <div class="footer-actions">
+                <button class="main-cta" id="start-next-btn">Start Next Skill</button>
+                <button class="secondary-cta" onclick="location.href='assessment.html'">Retake Assessment</button>
+            </div>
         </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
     </div>
 
     <script src="roleData.js"></script>
     <script src="roadmapData.js"></script>
+    <script src="roadmap.js"></script>
     <script>
-        function logout() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
-        }
-
-        function generateRoadmap() {
-            const role = localStorage.getItem('target_role');
-            const assessmentResults = JSON.parse(localStorage.getItem('assessment_results') || '{}');
-            const content = document.getElementById('roadmap-content');
-            const noMsg = document.getElementById('no-roadmap-msg');
-            const subtitle = document.getElementById('roadmap-subtitle');
-
-            if (!role) {
-                content.style.display = 'none';
-                noMsg.style.display = 'block';
-                return;
-            }
-
-            subtitle.innerText = `Growth plan for becoming a ${role}`;
-            const requirements = roleRequirements[role];
-            content.innerHTML = '';
-
-            const levels = ["None", "Beginner", "Intermediate", "Advanced"];
-
-            let hasGaps = false;
-
-            for (const skill in requirements) {
-                const targetLevel = requirements[skill];
-                const userData = assessmentResults[skill] || { currentLevel: "None" };
-                const userLevel = userData.currentLevel;
-
-                const targetIdx = levels.indexOf(targetLevel);
-                const userIdx = levels.indexOf(userLevel);
-
-                if (userIdx < targetIdx) {
-                    hasGaps = true;
-                    // Determine which levels to include in roadmap
-                    // If user is "None", start from Beginner. If user is "Beginner", start from Intermediate.
-                    const skillSection = document.createElement('div');
-                    skillSection.className = 'skill-section';
-                    skillSection.innerHTML = `<h3><i class="fas fa-book-reader"></i> ${skill}</h3>`;
-
-                    for (let i = userIdx + 1; i <= targetIdx; i++) {
-                        const levelToLearn = levels[i];
-                        const data = roadmapData[skill] ? roadmapData[skill][levelToLearn] : null;
-
-                        if (data) {
-                            const block = document.createElement('div');
-                            block.className = 'week-block';
-                            block.innerHTML = `
-                                <strong>Level: ${levelToLearn}</strong>
-                                <ul style="margin-top: 10px;">
-                                    ${data["Week 1"].map(topic => `<li>${topic}</li>`).join('')}
-                                </ul>
-                                <div class="practice-box">
-                                    <strong>Practice:</strong> ${data.Practice}
-                                </div>
-                            `;
-                            skillSection.appendChild(block);
-                        }
-                    }
-                    content.appendChild(skillSection);
-                }
-            }
-
-            if (!hasGaps) {
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <h3>🎉 Congratulations!</h3>
-                        <p>You have already met all the skill requirements for the <strong>${role}</strong> role.</p>
-                        <button onclick="location.href='gap-analysis.html'" class="btn">Choose a More Advanced Role</button>
-                    </div>
-                `;
-            }
-        }
-
-        generateRoadmap();
-
         // Theme logic
         const toggleBtn = document.getElementById('darkModeToggle');
         const body = document.body;
@@ -171,6 +553,11 @@
             localStorage.setItem('theme', newTheme ? 'dark' : 'light');
             updateThemeUI(newTheme);
         });
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
     </script>
 </body>
 </html>

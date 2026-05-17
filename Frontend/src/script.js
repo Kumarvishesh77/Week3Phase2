@@ -228,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const orgId = document.getElementById('login-org-id').value;
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
 
@@ -243,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ orgId, email, password })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
@@ -263,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mockUser = {
                     fullname: "Employee User",
                     email: email,
-                    orgId: orgId,
                     role: "Internal Personnel"
                 };
                 localStorage.setItem('user', JSON.stringify(mockUser));

@@ -13,13 +13,17 @@
 <!-- ================= TOP NAVBAR ================= -->
 <header class="topbar">
     <div class="logo" onclick="goHome()" style="cursor: pointer;">Skill<span>Bridge</span></div>
-    <div class="user-actions">
-        <span>Welcome, User</span>
-        <button id="theme-toggle" class="theme-btn">
+    <nav class="navigation">
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="../profile.html">Profile</a>
+        <a href="../assessment.html">Assessments</a>
+        <a href="../gap-analysis.html">Gap Analysis</a>
+        <a href="../roadmap.html">Roadmap</a>
+        <button id="theme-toggle" class="theme-btn" style="background:none; border:none; color:inherit; cursor:pointer; font-size: 1.2em; margin: 0 15px;">
             <i class="fas fa-moon"></i>
         </button>
         <button class="logout-btn">Logout</button>
-    </div>
+    </nav>
 </header>
  
 <!-- ================= DASHBOARD LAYOUT ================= -->

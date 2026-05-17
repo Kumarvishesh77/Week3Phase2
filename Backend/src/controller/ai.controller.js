@@ -5,31 +5,77 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const localQuestions = require("../data/localQuestions");
 
-function handleFallback(skill, level, res, originalError) {
-    console.error(`[AI CRITICAL ERROR] Failed to generate dynamic assessment for ${skill}. Reason: ${originalError}`);
-    
-    // Serve a set of generic technical questions instead of just one "Retry" message
-    const questions = [
-        { id: 1, type: "mcq", question: `In the context of ${skill}, what is a primary best practice for development?`, options: ["Code Review", "Manual Testing Only", "Hardcoding Secrets", "Ignoring Documentation"], answer: "Code Review" },
-        { id: 2, type: "written", question: `Explain the importance of version control when working with ${skill}.`, answer: "Version control allows for tracking changes, collaboration, and reverting to previous states." },
-        { id: 3, type: "mcq", question: `Which tool is commonly used for managing dependencies in ${skill}?`, options: ["Package Manager", "Text Editor", "Operating System", "Browser"], answer: "Package Manager" },
-        { id: 4, type: "mcq", question: `What does the term 'Production' refer to in a ${skill} workflow?`, options: ["User Environment", "Development Machine", "Staging Server", "Local Database"], answer: "User Environment" },
-        { id: 5, type: "written", question: `Describe a common troubleshooting step for ${skill} issues.`, answer: "Checking logs, verifying configuration, and checking network connectivity." },
-        { id: 6, type: "mcq", question: `What is the purpose of unit testing in ${skill}?`, options: ["Verify small units", "Test the whole system", "Check performance", "Monitor traffic"], answer: "Verify small units" },
-        { id: 7, type: "mcq", question: `Which of these is a key security consideration for ${skill}?`, options: ["Encryption", "Low Contrast", "Slow Speed", "Local Storage Only"], answer: "Encryption" },
-        { id: 8, type: "written", question: `How can performance be optimized for ${skill}?`, answer: "Caching, efficient algorithms, and reducing network overhead." },
-        { id: 9, type: "mcq", question: `What is the role of an API in ${skill}?`, options: ["Communication interface", "Data storage", "UI component", "Compiler"], answer: "Communication interface" },
-        { id: 10, type: "mcq", question: `Which environment is used for final testing before release?`, options: ["Staging", "Production", "Local", "IDE"], answer: "Staging" }
-    ];
+/**
+ * Utility to shuffle an array (Fisher-Yates)
+ */
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
 
-    return res.status(200).json({
-        skill,
-        level,
-        generatedAt: new Date().toISOString(),
-        questions: questions,
-        isFallback: true,
-        errorNote: "AI Quota/Key Error. Showing generic technical assessment."
-    });
+function handleFallback(skill, level, res, originalError) {
+    console.warn(`[AI Fallback] Attempting fallback for ${skill} (${level}). Reason: ${originalError}`);
+    
+    const s = skill.toLowerCase();
+    let questionsPool = [];
+    let matchedCategory = "";
+
+    // 1. GLOBAL Domain Mapping (Detect specific technical fields)
+    if (s.includes("python") || s.includes("py")) matchedCategory = "Python";
+    else if (s.includes("javascript") || s.includes("js") || s.includes("script") || s.includes("react") || s.includes("vue") || s.includes("angular")) matchedCategory = "JavaScript";
+    else if (s.includes("java") && !s.includes("script")) matchedCategory = "Java";
+    else if (s.includes("sql") || s.includes("database") || s.includes("db") || s.includes("mongo") || s.includes("postgres") || s.includes("oracle")) matchedCategory = "SQL";
+    else if (s.includes("test") || s.includes("qa") || s.includes("automation") || s.includes("selenium") || s.includes("cypress")) matchedCategory = "Testing";
+    else if (s.includes("web") || s.includes("html") || s.includes("css")) matchedCategory = "Web Development";
+    else if (s.includes("infra") || s.includes("network") || s.includes("cloud") || s.includes("azure") || s.includes("aws") || s.includes("m365")) matchedCategory = "Cloud";
+
+    // 2. Get primary questions from local bank
+    if (matchedCategory && localQuestions[matchedCategory]) {
+        questionsPool = localQuestions[matchedCategory][level] || localQuestions[matchedCategory]["Beginner"] || [];
+    }
+
+    // 3. Fallback to literal key match (e.g. if skill is "General")
+    if (questionsPool.length === 0 && localQuestions[skill]) {
+        questionsPool = localQuestions[skill][level] || localQuestions[skill]["Beginner"] || [];
+    }
+
+    // 4. Supplement to exactly 10 questions using level-appropriate General pool
+    const generalPool = localQuestions["General"][level] || localQuestions["General"]["Beginner"] || [];
+    let finalPool = shuffleArray(questionsPool);
+    
+    if (finalPool.length < 10) {
+        console.log(`[AI Fallback] Supplementing ${10 - finalPool.length} questions from General pool for skill: ${skill}`);
+        const shuffledGeneral = shuffleArray(generalPool);
+        for (const q of shuffledGeneral) {
+            if (finalPool.length >= 10) break;
+            if (!finalPool.some(existing => existing.question === q.question)) {
+                finalPool.push(q);
+            }
+        }
+    }
+
+    // 5. Final re-indexing for UI
+    const selectedQuestions = finalPool.slice(0, 10).map((q, index) => ({
+        ...q,
+        id: index + 1
+    }));
+
+    if (selectedQuestions.length > 0) {
+        return res.status(200).json({
+            skill,
+            level,
+            generatedAt: new Date().toISOString(),
+            questions: selectedQuestions,
+            isFallback: true,
+            errorNote: "AI Quota/Key Error. Showing technical assessment related to your domain."
+        });
+    }
+
+    return res.status(500).json({ message: "Failed to generate assessment" });
 }
 
 async function generateAssessment(req, res) {
@@ -49,33 +95,97 @@ async function generateAssessment(req, res) {
         const genAIInstance = new GoogleGenerativeAI(apiKey);
         const questionCount = 10;
 
-        const prompt = `
-            Task: Generate ${questionCount} assessment questions for skill: "${skill}" at "${level}" level.
-            Requirements:
-            1. Difficulty: ${level} strictly.
-            2. Format: Standard MCQs with 4 options.
-            
-            Format: Valid JSON ONLY.
-            Structure: {"questions": [{"id": 1, "type": "mcq", "question": "...", "options": ["A", "B", "C", "D"], "answer": "A"}]}
-        `;
+        let prompt = "";
+        const attemptSeed = new Date().toISOString();
+        if (level === "Advanced") {
+            prompt = `
+                Task: Generate Exactly ${questionCount} unique Advanced-level questions for skill: "${skill}" ONLY.
+                Constraint: Every question must be related to "${skill}" and its ecosystem. Do NOT generate generic IT questions.
+                Attempt ID: ${attemptSeed}
+                
+                Mandatory Question Mix (10 Questions Total):
+                1. Code-Debugging (4): Provide technical code snippets with realistic bugs (logic, syntax, or architectural) SPECIFIC to "${skill}". Include a "code" field.
+                2. Technical Written/Descriptive (3): Complex conceptual questions where the user must type a brief technical explanation about "${skill}". Use type: "written".
+                3. Advanced MCQ (3): Deep-dive theoretical or architectural multiple-choice questions about "${skill}". Use type: "mcq".
+
+                Format: Valid JSON ONLY.
+                Structure: 
+                {
+                    "questions": [
+                        {
+                            "id": 1, 
+                            "type": "code", 
+                            "question": "Debug this ${skill} snippet...", 
+                            "code": "...", 
+                            "options": ["Fix A", "Fix B", "Fix C", "Fix D"], 
+                            "answer": "Correct Fix Text"
+                        }
+                    ]
+                }
+                
+                Requirements:
+                - Difficulty: Strictly Advanced (Expert Level).
+                - Domain focus: ONLY "${skill}".
+            `;
+        } else {
+            prompt = `
+                Task: Generate Exactly ${questionCount} unique assessment questions for skill: "${skill}" ONLY.
+                Constraint: Questions must be related to "${skill}" only. Do NOT repeat generic questions.
+                Attempt ID: ${attemptSeed}
+                Requirements:
+                1. Difficulty: ${level} strictly.
+                2. Format: Standard MCQs with 4 options.
+                3. Content: Must be technically accurate and specific to "${skill}".
+                4. Randomness: Ensure a diverse range of sub-topics within "${skill}".
+
+                Format: Valid JSON ONLY.
+                Structure: {"questions": [{"id": 1, "type": "mcq", "question": "...", "options": ["A", "B", "C", "D"], "answer": "Correct Answer Text"}]}
+            `;
+        }
 
         const modelName = "gemini-1.5-flash";
         const model = genAIInstance.getGenerativeModel({ 
             model: modelName,
-            generationConfig: { maxOutputTokens: 1000, temperature: 0.5 }
+            generationConfig: { maxOutputTokens: 2500, temperature: 0.9 } // Increased temperature for higher variety
         });
 
-        const result = await model.generateContent(prompt);
+        const aiPromise = model.generateContent(prompt);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("AI Timeout")), 15000)
+        );
+
+        const result = await Promise.race([aiPromise, timeoutPromise]);
         const response = await result.response;
         const responseText = response.text().trim();
+        
         const cleanText = responseText.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim();
         const assessmentData = JSON.parse(cleanText);
+
+        if (!assessmentData.questions || assessmentData.questions.length === 0) {
+            throw new Error("Empty questions returned from AI");
+        }
+
+        // Ensure exactly 10 questions and shuffle them
+        let finalQuestions = shuffleArray(assessmentData.questions);
+        
+        // If AI returns fewer than 10, supplement from local bank as a safety net
+        if (finalQuestions.length < 10) {
+            console.log(`[AI] AI returned only ${finalQuestions.length} questions. Supplementing...`);
+            const fallbackPool = localQuestions["General"][level] || localQuestions["General"]["Beginner"] || [];
+            const shuffledFallback = shuffleArray(fallbackPool);
+            for (const q of shuffledFallback) {
+                if (finalQuestions.length >= 10) break;
+                finalQuestions.push(q);
+            }
+        }
+
+        finalQuestions = finalQuestions.slice(0, 10).map((q, i) => ({ ...q, id: i + 1 }));
 
         return res.status(200).json({
             skill,
             level,
             generatedAt: new Date().toISOString(),
-            questions: assessmentData.questions
+            questions: finalQuestions
         });
     } catch (error) {
         console.error("[AI Error]:", error.message);
@@ -145,9 +255,9 @@ async function generateGapAnalysis(req, res) {
         const response = await result.response;
         const responseText = response.text().trim();
         const cleanText = responseText.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim();
-        const analysisData = JSON.parse(cleanText);
+        const assessmentData = JSON.parse(cleanText);
 
-        return res.status(200).json({ success: true, data: analysisData });
+        return res.status(200).json({ success: true, data: assessmentData });
     } catch (error) {
         console.error("[AI Gap Analysis Error]:", error.message);
         return handleGapAnalysisFallback(targetRole, userSkills, userAssessments, company, res);

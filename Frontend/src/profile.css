@@ -5,15 +5,16 @@
     --danger-color: #d13438;
     --warning-color: #ffb900;
     --bg-light: #f3f2f1;
-    --card-bg: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --glass-blur: blur(12px);
     --border-color: #edebe9;
     --text-main: #323130;
     --text-secondary: #605e5c;
     --text-inverse: #ffffff;
     --sidebar-width: 320px;
     --header-height: 60px;
-    --radius: 4px;
-    --shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+    --radius: 12px;
+    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 }
 
 * {
@@ -24,12 +25,24 @@
 
 body.enterprise-theme {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg-light);
-    background-image: none; /* Override style.css background */
+    background: url('/Background4.jpg.jfif') no-repeat center center/cover;
+    background-attachment: fixed;
     color: var(--text-main);
     line-height: 1.5;
     display: block; /* Override style.css flex display */
     padding-top: 0;
+    min-height: 100vh;
+}
+
+body.dark-mode::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7); /* Dark overlay matching dashboard */
+    z-index: -1;
 }
 
 /* Header Override */
@@ -102,11 +115,13 @@ body.enterprise-theme .navigation a::after {
 
 .sidebar-card {
     background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
     border-radius: var(--radius);
     padding: 24px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
     text-align: center;
+    border: 1px solid var(--border-color);
 }
 
 .avatar-container {
@@ -239,11 +254,13 @@ body.enterprise-theme .navigation a::after {
 .profile-main-content {
     flex-grow: 1;
     background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
     min-height: 700px;
+    border: 1px solid var(--border-color);
 }
 
 .content-tabs {
@@ -536,10 +553,10 @@ body.enterprise-theme .navigation a::after {
 /* Dark Mode Overrides (Basic) */
 body.dark-mode {
     --bg-light: #111;
-    --card-bg: #1e1e1e;
+    --card-bg: rgba(30, 41, 59, 0.8);
     --text-main: #eee;
     --text-secondary: #aaa;
-    --border-color: #333;
+    --border-color: rgba(255, 255, 255, 0.1);
 }
 
 body.dark-mode .system-grid { background: #252525; }

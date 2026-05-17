@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Learning Roadmap - SkillBridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        .readiness-banner {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--primary);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .readiness-info h3 {
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .readiness-info p {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .readiness-meter {
+            text-align: right;
+        }
+
+        .meter-bar {
+            width: 200px;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 15%; /* Current Progress */
+            transition: width 1s ease;
+        }
+
+        /* Roadmap Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .phase-section {
+            position: relative;
+            margin-bottom: 50px;
+        }
+
+        .phase-marker {
+            position: absolute;
+            left: -39px;
+            top: 0;
+            width: 18px;
+            height: 18px;
+            background: var(--bg);
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .phase-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .priority-label {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .phase-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Skill Cards */
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .skill-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .skill-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .skill-level-tag {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--secondary);
+        }
+
+        .recommendation-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .recommendation-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .recommendation-list li::before {
+            content: '\f058';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        .outcome-box {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+        }
+
+        .outcome-box h4 {
+            font-size: 0.8rem;
+            color: var(--success);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .outcome-box p {
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .gap-severity {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .skill-grid { grid-template-columns: 1fr; }
+            .readiness-banner { flex-direction: column; text-align: center; gap: 20px; }
+            .readiness-meter { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Professional Growth <span>Roadmap</span></h1>
+            <p>Target: Microsoft 365 Admin at SkillBridge</p>
+        </div>
+
+        <div class="readiness-banner">
+            <div class="readiness-info">
+                <h3>Role Readiness</h3>
+                <p>Assessment Phase Active</p>
+            </div>
+            <div class="readiness-meter">
+                <span>15% Completion</span>
+                <div class="meter-bar">
+                    <div class="meter-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <!-- Phase 1 -->
+            <div class="phase-section">
+                <div class="phase-marker"></div>
+                <div class="phase-header">
+                    <span class="phase-badge">Phase 1</span>
+                    <span class="priority-label"><i class="fas fa-fire"></i> High Priority</span>
+                    <h2 class="phase-title">Infrastructure Foundations</h2>
+                </div>
+                <div class="skill-grid">
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <div>
+                                <div class="skill-name">Networking</div>
+                                <div class="skill-level-tag">None → Intermediate</div>
+                            </div>
+                            <i class="fas fa-network-wired fa-lg" style="color: var(--primary);"></i>
+                        </div>
+                        <div class="gap-severity">Criticality: High Gap</div>
+                        <ul class="recommendation-list">
+                            <li>Lab: Configure DNS records (MX, SPF, TXT) for domain verification.</li>
+                            <li>Study: Port requirements for Teams and Exchange Online.</li>
+                            <li>Practice: Use Connectivity Analyzer to troubleshoot mail flow.</li>
+                        </ul>
+                        <div class="outcome-box">
+                            <h4>Expected Outcome</h4>
+                            <p>Ability to successfully verify domains and resolve mail delivery bottlenecks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="phase-section">
+                <div class="phase-marker" style="border-color: var(--success);"></div>
+                <div class="phase-header">
+                    <span class="phase-badge" style="background: var(--success);">Phase 2</span>
+                    <span class="priority-label" style="color: var(--success);"><i class="fas fa-shield-alt"></i> Security Focused</span>
+                    <h2 class="phase-title">Security & Identity Mastery</h2>
+                </div>
+                <div class="skill-grid">
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <div>
+                                <div class="skill-name">Security</div>
+                                <div class="skill-level-tag">None → Intermediate</div>
+                            </div>
+                            <i class="fas fa-user-shield fa-lg" style="color: var(--success);"></i>
+                        </div>
+                        <div class="gap-severity" style="color: var(--accent);">Criticality: Medium-High</div>
+                        <ul class="recommendation-list">
+                            <li>Project: Implement Multi-Factor Authentication (MFA) across the tenant.</li>
+                            <li>Lab: Create Conditional Access policies for remote users.</li>
+                            <li>Task: Configure Data Loss Prevention (DLP) for document protection.</li>
+                        </ul>
+                        <div class="outcome-box">
+                            <h4>Expected Outcome</h4>
+                            <p>Hardened tenant security and prevention of organizational data leaks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="phase-section">
+                <div class="phase-marker" style="border-color: #c084fc;"></div>
+                <div class="phase-header">
+                    <span class="phase-badge" style="background: #c084fc;">Phase 3</span>
+                    <span class="priority-label" style="color: #c084fc;"><i class="fas fa-cloud"></i> Core Platform</span>
+                    <h2 class="phase-title">Advanced Service Administration</h2>
+                </div>
+                <div class="skill-grid">
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <div>
+                                <div class="skill-name">Microsoft 365</div>
+                                <div class="skill-level-tag">None → Advanced</div>
+                            </div>
+                            <i class="fab fa-microsoft fa-lg" style="color: #c084fc;"></i>
+                        </div>
+                        <div class="gap-severity">Criticality: Critical Skill</div>
+                        <ul class="recommendation-list">
+                            <li>Activity: Automate user onboarding using PowerShell and Graph API.</li>
+                            <li>Lab: Manage SharePoint collections and Teams governance policies.</li>
+                            <li>Deep Dive: Configure Microsoft Entra Connect for hybrid identity sync.</li>
+                        </ul>
+                        <div class="outcome-box">
+                            <h4>Expected Outcome</h4>
+                            <p>Full proficiency in managing complex enterprise tenants and advanced automation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

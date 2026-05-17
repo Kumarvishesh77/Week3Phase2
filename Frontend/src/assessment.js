@@ -93,26 +93,54 @@ function startAssessmentFlow() {
     startTimer();
 }
 
+function escapeHtml(text) {
+    if (!text) return "";
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 function showQuestion() {
     const q = questions[currentQuestionIndex];
     questionsContainer.innerHTML = '';
     
     const qDiv = document.createElement('div');
     qDiv.className = 'question-block';
+    
+    let codeHtml = '';
+    if (q.type === 'code' && q.code) {
+        codeHtml = `
+            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 0.9em; line-height: 1.4;"><code>${escapeHtml(q.code)}</code></pre>
+        `;
+    }
+
+    let optionsHtml = '';
+    if (q.type === 'written') {
+        optionsHtml = `
+            <textarea id="written-answer" placeholder="Type your technical explanation here..." 
+                      style="width: 100%; height: 120px; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); font-family: inherit; resize: vertical;"
+                      oninput="handleOptionSelect()"></textarea>
+        `;
+    } else {
+        optionsHtml = `
+            <div class="options-list">
+                ${q.options.map((opt) => `
+                    <label style="display: block; background: rgba(255,255,255,0.03); margin: 8px 0; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+                        <input type="radio" name="q" value="${opt}" onchange="handleOptionSelect()" style="margin-right: 10px;"> ${escapeHtml(opt)}
+                    </label>
+                `).join('')}
+            </div>
+        `;
+    }
+
     qDiv.innerHTML = `
-        <p style="margin-bottom: 10px; opacity: 0.7;">Question ${currentQuestionIndex + 1} of ${questions.length}</p>
-        <p><strong>${q.question}</strong></p>
-        <div class="options-list">
-            ${q.options.map((opt) => `
-                <label>
-                    <input type="radio" name="q" value="${opt}" onchange="handleOptionSelect()"> ${opt}
-                </label>
-            `).join('')}
-        </div>
+        <p style="margin-bottom: 10px; opacity: 0.7; font-size: 0.9em;">Question ${currentQuestionIndex + 1} of ${questions.length}</p>
+        <p style="font-size: 1.1em; line-height: 1.5; margin-bottom: 15px;"><strong>${escapeHtml(q.question)}</strong></p>
+        ${codeHtml}
+        ${optionsHtml}
         <div id="action-container" style="margin-top: 30px; display: flex; justify-content: flex-end; visibility: hidden;">
             ${currentQuestionIndex === questions.length - 1 
-                ? `<button onclick="submitQuiz()" class="btn" style="background: var(--accent);">Submit Assessment</button>` 
-                : `<button onclick="nextQuestion()" class="btn">Next Question <i class="fas fa-arrow-right"></i></button>`
+                ? `<button onclick="submitQuiz()" class="btn" style="background: var(--accent); padding: 12px 30px;">Submit Assessment</button>` 
+                : `<button onclick="nextQuestion()" class="btn" style="padding: 12px 30px;">Next Question <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>`
             }
         </div>
     `;
@@ -123,10 +151,21 @@ window.handleOptionSelect = () => {
     document.getElementById('action-container').style.visibility = 'visible';
 };
 
+function captureCurrentAnswer() {
+    const q = questions[currentQuestionIndex];
+    if (q.type === 'written') {
+        const textarea = document.getElementById('written-answer');
+        return textarea ? textarea.value.trim() : "";
+    } else {
+        const selected = document.querySelector('input[name="q"]:checked');
+        return selected ? selected.value : "";
+    }
+}
+
 function nextQuestion() {
-    const selected = document.querySelector('input[name="q"]:checked');
-    if (!selected) return;
-    userAnswers.push(selected.value);
+    const answer = captureCurrentAnswer();
+    if (!answer && questions[currentQuestionIndex].type !== 'written') return;
+    userAnswers.push(answer);
     currentQuestionIndex++;
     showQuestion();
 }
@@ -147,17 +186,26 @@ function startTimer() {
 }
 
 async function submitQuiz() {
-    const selected = document.querySelector('input[name="q"]:checked');
-    if (selected) userAnswers.push(selected.value);
+    const lastAnswer = captureCurrentAnswer();
+    if (userAnswers.length < questions.length) userAnswers.push(lastAnswer);
     
     clearInterval(timerInterval);
     
     let correctCount = 0;
+    let scorableCount = 0;
+
     questions.forEach((q, i) => {
-        if (userAnswers[i] === q.answer) correctCount++;
+        if (q.type !== 'written') {
+            scorableCount++;
+            if (userAnswers[i] === q.answer) correctCount++;
+        } else {
+            // For written, mark as "correct" if not empty for simple scoring
+            if (userAnswers[i].length > 10) correctCount++;
+            scorableCount++;
+        }
     });
     
-    const score = Math.round((correctCount / questions.length) * 100);
+    const score = Math.round((correctCount / scorableCount) * 100);
     const passed = score >= 70;
     
     showResults(score, passed);
